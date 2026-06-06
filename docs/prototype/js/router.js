@@ -20,7 +20,9 @@ const Router = (() => {
       return false;
     }
 
-    if (name === current && !opts.force) return false;
+    // Allow re-applying .active on same screen when forced (e.g. initial load)
+    const sameScreen = (name === current);
+    if (sameScreen && !opts.force) return false;
 
     const prev = current;
     current = name;
@@ -29,7 +31,7 @@ const Router = (() => {
     const prevEl = getScreen(prev);
     const nextEl = getScreen(name);
 
-    if (prevEl) {
+    if (prevEl && !sameScreen) {
       prevEl.classList.remove("active");
       prevEl.classList.add("exit-left");
       setTimeout(() => prevEl.classList.remove("exit-left"), 350);
@@ -73,8 +75,9 @@ const Router = (() => {
 
     // hash on load
     const hash = location.hash.replace("#", "");
-    if (ROUTES.includes(hash)) navigate(hash, { silent: true });
-    else navigate("clock", { silent: true });
+    const startScreen = ROUTES.includes(hash) ? hash : "clock";
+    // Force first navigate so the screen actually gets .active
+    navigate(startScreen, { silent: true, force: true });
 
     // browser back/forward
     window.addEventListener("popstate", e => {

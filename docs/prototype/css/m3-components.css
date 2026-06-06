@@ -592,8 +592,10 @@ button:active > .state-layer,
 /* ============ Bottom Sheet ============ */
 .m3-bottom-sheet {
   position: absolute;
-  inset: auto 0 0 0;
-  max-height: 92%;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 8%;
   background: var(--md-sys-color-surface-container-low);
   border-radius: 28px 28px 0 0;
   box-shadow: var(--md-sys-elevation-3);

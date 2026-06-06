@@ -460,7 +460,7 @@ function getUnlockedAt(level) {
   const unlocks = [];
   if (level === 2) {
     unlocks.push({ icon: "quiz", label: t("unlock_quiz") });
-    unlocks.push({ icon: "emoji_events", label: t("nav_ach") });
+    unlocks.push({ icon: "emoji_events", label: t("unlock_ach") });
   } else if (level === 3) {
     unlocks.push({ icon: "tune", label: t("unlock_settings") });
     unlocks.push({ icon: "pan_tool", label: "Set-clock quizzes" });
@@ -508,7 +508,7 @@ function renderLevelCard() {
       <div class="level-badge">${lvl}</div>
       <div class="level-info">
         <div class="level-title">${t("level")} ${lvl}</div>
-        <div class="level-sub">${s.stars} ⭐ · ${s.bestStreak}🔥 best</div>
+        <div class="level-sub">${s.stars} ⭐ · ${s.bestStreak}🔥 ${t("best_label")}</div>
       </div>
     </div>
     <div class="m3-linear-progress"><div class="bar" style="width:${p.atMax ? 100 : Math.min(100, p.percent).toFixed(1)}%"></div></div>

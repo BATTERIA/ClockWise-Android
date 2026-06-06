@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClockWise Android — 产品提案</title>
+<style>
+:root {
+  --indigo: #3F51B5;
+  --indigo-dark: #303F9F;
+  --indigo-light: #C5CAE9;
+  --orange: #FF9800;
+  --orange-light: #FFE0B2;
+  --text: #212121;
+  --text-secondary: #757575;
+  --bg: #FAFAFA;
+  --card: #FFFFFF;
+  --radius: 12px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--text); background: var(--bg); line-height: 1.7; }
+.hero { background: linear-gradient(135deg, var(--indigo) 0%, var(--indigo-dark) 100%); color: white; padding: 80px 20px; text-align: center; }
+.hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); margin-bottom: 12px; }
+.hero p { font-size: 1.2rem; opacity: 0.9; max-width: 600px; margin: 0 auto; }
+.badge { display: inline-block; background: var(--orange); color: white; padding: 4px 14px; border-radius: 20px; font-size: 0.85rem; margin-top: 16px; }
+.container { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
+nav.toc { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 30px; margin-bottom: 40px; }
+nav.toc h2 { color: var(--indigo); margin-bottom: 16px; }
+nav.toc ol { padding-left: 20px; }
+nav.toc li { margin: 6px 0; }
+nav.toc a { color: var(--indigo); text-decoration: none; }
+nav.toc a:hover { text-decoration: underline; }
+section { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 30px; margin-bottom: 30px; }
+h2 { color: var(--indigo); border-bottom: 3px solid var(--orange); padding-bottom: 8px; margin-bottom: 20px; font-size: 1.5rem; }
+h3 { color: var(--indigo-dark); margin: 18px 0 10px; }
+ul, ol { padding-left: 20px; margin: 10px 0; }
+li { margin: 4px 0; }
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.95rem; }
+th { background: var(--indigo); color: white; padding: 10px 14px; text-align: left; }
+td { padding: 10px 14px; border-bottom: 1px solid #eee; }
+tr:hover td { background: var(--indigo-light); }
+pre { background: #263238; color: #EEFFFF; padding: 20px; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin: 16px 0; }
+.grid-card { background: linear-gradient(135deg, var(--indigo-light) 0%, white 100%); border-radius: 8px; padding: 16px; border-left: 4px solid var(--orange); }
+.grid-card h4 { color: var(--indigo-dark); margin-bottom: 6px; }
+.highlight { background: var(--orange-light); padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid var(--orange); }
+.milestone { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px dashed #ddd; }
+.milestone-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--orange); flex-shrink: 0; }
+@media (max-width: 600px) { section { padding: 20px; } .hero { padding: 50px 16px; } }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>🕐 ClockWise</h1>
+  <p>儿童时钟学习App — Android版产品提案</p>
+  <span class="badge">Android • Kotlin • Jetpack Compose</span>
+</div>
+
+<div class="container">
+
+<nav class="toc">
+  <h2>📋 目录 Table of Contents</h2>
+  <ol>
+    <li><a href="#positioning">产品定位 Product Positioning</a></li>
+    <li><a href="#curriculum">学习内容体系 Curriculum</a></li>
+    <li><a href="#quiz">练习题系统 Quiz System</a></li>
+    <li><a href="#interactive">互动与趣味模块 Interactive Modules</a></li>
+    <li><a href="#bilingual">双语支持 Bilingual Support</a></li>
+    <li><a href="#parent">家长/教师系统 Parent/Teacher System</a></li>
+    <li><a href="#rewards">奖励系统 Rewards System</a></li>
+    <li><a href="#ux">UI/UX设计原则 Design Principles</a></li>
+    <li><a href="#tech">技术方案 Technical Architecture</a></li>
+    <li><a href="#business">商业模式 Business Model</a></li>
+    <li><a href="#accessibility">无障碍支持 Accessibility</a></li>
+    <li><a href="#culture">文化与时区教学 Culture & Timezone</a></li>
+    <li><a href="#milestones">项目里程碑 Milestones</a></li>
+    <li><a href="#competitive">竞品差异化 Competitive Edge</a></li>
+  </ol>
+</nav>
+
+<section id="positioning">
+  <h2>1. 产品定位 Product Positioning</h2>
+  <div class="highlight">
+    <strong>ClockWise</strong> — 一款专为4-10岁儿童设计的时钟学习应用，通过互动动画、游戏化练习和故事驱动，让孩子在玩乐中掌握时间概念。
+  </div>
+  <div class="grid">
+    <div class="grid-card"><h4>📱 Platform</h4><p>Android (Tablet优先，Phone兼容)</p></div>
+    <div class="grid-card"><h4>🌍 Language</h4><p>Chinese + English 双语 (默认English)</p></div>
+    <div class="grid-card"><h4>👶 Target</h4><p>4-10岁儿童及家长/教师</p></div>
+    <div class="grid-card"><h4>🎯 Goal</h4><p>让每个孩子轻松学会看时钟</p></div>
+  </div>
+</section>
+
+<section id="curriculum">
+  <h2>2. 学习内容体系 Curriculum</h2>
+  <h3>⏰ 时钟类型认知</h3>
+  <div class="grid">
+    <div class="grid-card"><h4>模拟指针钟</h4><p>经典时钟，时/分/秒针动画</p></div>
+    <div class="grid-card"><h4>数字时钟</h4><p>LED风格数字显示</p></div>
+    <div class="grid-card"><h4>沙漏</h4><p>时间流逝的直观表达</p></div>
+    <div class="grid-card"><h4>日晷</h4><p>太阳与影子的关系</p></div>
+    <div class="grid-card"><h4>翻页钟</h4><p>复古翻页动画</p></div>
+    <div class="grid-card"><h4>怀表</h4><p>历史与工艺之美</p></div>
+  </div>
+
+  <h3>📚 分阶段课程 L1-L4</h3>
+  <table>
+    <tr><th>Level</th><th>内容</th><th>目标年龄</th></tr>
+    <tr><td>L1 整点</td><td>认识1-12点整</td><td>4-5岁</td></tr>
+    <tr><td>L2 半点</td><td>半点、一刻</td><td>5-6岁</td></tr>
+    <tr><td>L3 任意分钟</td><td>精确到分钟</td><td>7-8岁</td></tr>
+    <tr><td>L4 时区</td><td>世界时间、AM/PM、24h</td><td>9-10岁</td></tr>
+  </table>
+
+  <h3>🔊 语音引导系统</h3>
+  <ul>
+    <li>Android TTS (TextToSpeech) 引擎驱动</li>
+    <li>操作引导 — 告诉孩子下一步做什么</li>
+    <li>读题 — 朗读题目内容</li>
+    <li>反馈 — 鼓励与纠正</li>
+  </ul>
+
+  <h3>🎮 渐进式界面 Progressive UI</h3>
+  <p>根据学习进度逐步解锁界面元素，避免信息过载。低Level只显示核心功能，高Level解锁高级工具。</p>
+
+  <h3>📅 时间与日历概念</h3>
+  <ul>
+    <li>星期 (Monday-Sunday)</li>
+    <li>月份与季节</li>
+    <li>时间单位 (秒→分→时→天→周→月→年)</li>
+    <li>时间顺序词 (before, after, earlier, later)</li>
+    <li>时间基础概念动画教学</li>
+  </ul>
+
+  <h3>🌍 时区模块</h3>
+  <ul>
+    <li>世界地图交互 — 点击城市查看当地时间</li>
+    <li>日夜动画 — 地球自转与昼夜变化</li>
+    <li>生活情境 — "北京早上8点，纽约几点？"</li>
+  </ul>
+</section>
+
+<section id="quiz">
+  <h2>3. 练习题系统 Quiz System</h2>
+  <h3>9种题型</h3>
+  <div class="grid">
+    <div class="grid-card"><h4>1. 看钟读时</h4><p>看指针回答时间</p></div>
+    <div class="grid-card"><h4>2. 拨钟设时</h4><p>拖动指针设定时间</p></div>
+    <div class="grid-card"><h4>3. 时间匹配</h4><p>连线配对</p></div>
+    <div class="grid-card"><h4>4. 时间排序</h4><p>按先后顺序排列</p></div>
+    <div class="grid-card"><h4>5. 时间计算</h4><p>"再过30分钟是几点？"</p></div>
+    <div class="grid-card"><h4>6. 选择题</h4><p>多选一</p></div>
+    <div class="grid-card"><h4>7. 填空题</h4><p>输入正确时间</p></div>
+    <div class="grid-card"><h4>8. 判断题</h4><p>对/错判断</p></div>
+    <div class="grid-card"><h4>9. 情境题</h4><p>日常生活场景应用</p></div>
+  </div>
+  <div class="highlight">
+    <strong>智能特性：</strong>自动生成逻辑 (基于当前Level动态出题) + 间隔重复算法 (优先复习薄弱知识点)
+  </div>
+</section>
+
+<section id="interactive">
+  <h2>4. 互动与趣味模块 Interactive Modules</h2>
+  <h3>🎮 小游戏</h3>
+  <ul>
+    <li>时间赛跑 — 限时答题挑战</li>
+    <li>时钟拼图 — 组装时钟零件</li>
+    <li>日程规划师 — 为角色安排一天</li>
+  </ul>
+  <h3>📖 故事系统</h3>
+  <ul>
+    <li>时间冒险家 — 穿越不同时代学习时间工具</li>
+    <li>迟到的兔子 — 帮助角色准时到达</li>
+    <li>故事中嵌入练习题，边读边学</li>
+  </ul>
+  <h3>🎨 创意互动</h3>
+  <ul>
+    <li>设计我的时钟 — 自定义表盘</li>
+    <li>时间日记 — 记录每天做了什么</li>
+  </ul>
+</section>
+
+<section id="bilingual">
+  <h2>5. 双语支持 Bilingual Support</h2>
+  <ul>
+    <li>界面+语音同步切换 (一键切换中/英)</li>
+    <li>多种时间表达方式：
+      <ul>
+        <li>English: "half past three", "quarter to five", "3:30 PM"</li>
+        <li>中文: "三点半", "差一刻五点", "下午3:30"</li>
+      </ul>
+    </li>
+    <li>Android Resources (strings.xml) 实现国际化</li>
+    <li>TTS语音自动匹配当前语言</li>
+  </ul>
+</section>
+
+<section id="parent">
+  <h2>6. 家长/教师系统 Parent/Teacher System</h2>
+  <div class="grid">
+    <div class="grid-card"><h4>📊 进度报告</h4><p>学习时长、正确率、知识点掌握度</p></div>
+    <div class="grid-card"><h4>🎚️ 难度调节</h4><p>手动/自动调整难度级别</p></div>
+    <div class="grid-card"><h4>👨‍👩‍👧‍👦 多用户</h4><p>一台设备支持多个孩子档案</p></div>
+    <div class="grid-card"><h4>⏰ 学习提醒</h4><p>自定义学习时间通知</p></div>
+  </div>
+</section>
+
+<section id="rewards">
+  <h2>7. 奖励系统 Rewards System</h2>
+  <ul>
+    <li>⭐ 星星积分 — 完成练习获得星星</li>
+    <li>🏅 成就徽章 — 里程碑解锁特殊徽章</li>
+    <li>🐱 解锁角色 — 积分兑换新伙伴</li>
+    <li>🔥 连续学习奖励 — 每日打卡额外奖励</li>
+  </ul>
+</section>
+
+<section id="ux">
+  <h2>8. UI/UX设计原则 Design Principles</h2>
+  <div class="grid">
+    <div class="grid-card"><h4>Material Design 3</h4><p>遵循MD3规范，动态配色</p></div>
+    <div class="grid-card"><h4>卡通风格</h4><p>友好、温暖的视觉语言</p></div>
+    <div class="grid-card"><h4>大触摸区域</h4><p>最小48dp触摸目标</p></div>
+    <div class="grid-card"><h4>零广告</h4><p>纯净无干扰学习环境</p></div>
+  </div>
+</section>
+
+<section id="tech">
+  <h2>9. 技术方案 Technical Architecture</h2>
+  <h3>技术选型</h3>
+  <table>
+    <tr><th>模块</th><th>技术选型</th></tr>
+    <tr><td>主框架</td><td>Kotlin + Jetpack Compose</td></tr>
+    <tr><td>动画</td><td>Compose Animation + Lottie</td></tr>
+    <tr><td>国际化</td><td>Android Resources (strings.xml)</td></tr>
+    <tr><td>数据存储</td><td>DataStore / Room</td></tr>
+    <tr><td>语音</td><td>Android TTS (TextToSpeech)</td></tr>
+    <tr><td>架构</td><td>MVVM + Clean Architecture</td></tr>
+    <tr><td>DI</td><td>Hilt</td></tr>
+    <tr><td>导航</td><td>Navigation Compose</td></tr>
+  </table>
+
+  <h3>架构设计 (MVVM + Clean)</h3>
+  <pre>
+app/
+  di/              — Hilt modules
+  data/
+    local/         — DataStore, Room
+    model/         — Data models
+    repository/    — Repository implementations
+  domain/
+    model/         — Domain models
+    usecase/       — Use cases
+    repository/    — Repository interfaces
+  presentation/
+    clock/         — Clock screen (ViewModel + Composables)
+    quiz/          — Quiz screen
+    settings/      — Settings screen
+    common/        — Shared composables
+    theme/         — Material3 theme
+  service/         — TTS, Rewards</pre>
+</section>
+
+<section id="business">
+  <h2>10. 商业模式 Business Model</h2>
+  <div class="highlight">
+    <strong>核心原则：</strong>教育为先，盈利为辅。让每个孩子都能免费获得基础学习体验。
+  </div>
+  <ul>
+    <li>✅ 免费 — 基础课程L1-L2完全免费</li>
+    <li>💎 内购 — 高级课程、额外角色、故事包</li>
+    <li>🚫 无广告 — 绝不向儿童展示广告</li>
+    <li>♿ 无障碍免费 — 所有无障碍功能永久免费</li>
+    <li>🔒 COPPA合规 — 严格遵守儿童隐私保护法规</li>
+  </ul>
+</section>
+
+<section id="accessibility">
+  <h2>11. 无障碍支持 Accessibility</h2>
+  <ul>
+    <li>TalkBack全覆盖 — 所有界面元素有语义描述</li>
+    <li>高对比度模式 — 可选高对比度配色方案</li>
+    <li>大字体支持 — 尊重系统字体缩放</li>
+    <li>色盲友好 — 不依赖颜色传递关键信息</li>
+    <li>大触摸区域 — 最小48dp×48dp触摸目标</li>
+  </ul>
+</section>
+
+<section id="culture">
+  <h2>12. 文化与时区教学 Culture & Timezone</h2>
+  <h3>🌏 世界文化中的时间</h3>
+  <ul>
+    <li>不同文化如何计时（中国十二时辰、古埃及、日本和时计）</li>
+    <li>节日与时间（春节倒计时、新年跨年）</li>
+  </ul>
+  <h3>🕐 时区深度学习</h3>
+  <ul>
+    <li>互动世界地图，实时显示各城市时间</li>
+    <li>日夜线动画，理解地球自转</li>
+    <li>生活情境对话："和外国朋友视频几点合适？"</li>
+  </ul>
+  <h3>🗣️ 多语言时间表达</h3>
+  <ul>
+    <li>比较中英文时间表达差异</li>
+    <li>趣味翻译小游戏</li>
+  </ul>
+</section>
+
+<section id="milestones">
+  <h2>13. 项目里程碑 Milestones</h2>
+  <div class="milestone"><span class="milestone-dot"></span><strong>M1 (Week 1-4):</strong>&nbsp;项目架构搭建、基础UI、时钟渲染</div>
+  <div class="milestone"><span class="milestone-dot"></span><strong>M2 (Week 5-8):</strong>&nbsp;L1-L2课程、练习题系统、TTS集成</div>
+  <div class="milestone"><span class="milestone-dot"></span><strong>M3 (Week 9-12):</strong>&nbsp;L3-L4课程、小游戏、奖励系统</div>
+  <div class="milestone"><span class="milestone-dot"></span><strong>M4 (Week 13-16):</strong>&nbsp;故事系统、家长面板、双语完善</div>
+  <div class="milestone"><span class="milestone-dot"></span><strong>M5 (Week 17-20):</strong>&nbsp;时区模块、无障碍优化、Beta测试、上线</div>
+</section>
+
+<section id="competitive">
+  <h2>14. 竞品差异化 Competitive Edge</h2>
+  <div class="grid">
+    <div class="grid-card"><h4>📖 故事驱动</h4><p>不是枯燥练习，而是有趣冒险</p></div>
+    <div class="grid-card"><h4>🌍 时区教学</h4><p>唯一深度教授时区概念的儿童App</p></div>
+    <div class="grid-card"><h4>🌐 真正双语</h4><p>不是翻译，是原生双语体验</p></div>
+    <div class="grid-card"><h4>🧠 智能练习</h4><p>间隔重复+自适应难度</p></div>
+    <div class="grid-card"><h4>♿ 无障碍优先</h4><p>从设计之初就考虑所有孩子</p></div>
+    <div class="grid-card"><h4>🎭 文化多元</h4><p>融入世界各地的时间文化</p></div>
+  </div>
+</section>
+
+</div>
+
+<footer style="background: var(--indigo-dark); color: white; text-align: center; padding: 30px 20px; margin-top: 40px;">
+  <p>ClockWise Android — by BATTERIA</p>
+  <p style="opacity:0.7; font-size:0.85rem; margin-top:8px;">© 2026 BATTERIA. All rights reserved.</p>
+</footer>
+
+</body>
+</html>

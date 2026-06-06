@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ClockWise</string>
+    <string name="clock_screen">Clock Screen</string>
+    <string name="quiz_screen">Quiz Screen</string>
+    <string name="settings_screen">Settings Screen</string>
+</resources>

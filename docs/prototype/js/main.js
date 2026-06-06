@@ -606,9 +606,30 @@ function escapeHtml(s) {
 }
 
 // ============ Bootstrap ============
+function fitDevice() {
+  const frame = document.querySelector(".device-frame");
+  if (!frame) return;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  // Mobile: full screen, no scale
+  if (vw <= 480) {
+    frame.style.transform = "";
+    return;
+  }
+  // Desktop: scale to fit
+  const scaleY = (vh - 60) / 915;
+  const scaleX = (vw - 80) / 412;
+  const scale = Math.min(1, scaleY, scaleX);
+  frame.style.transform = `scale(${scale})`;
+}
+
 function bootstrap() {
   // theme
   document.documentElement.dataset.theme = State.get().theme || "light";
+
+  // Scale device frame to fit viewport
+  fitDevice();
+  window.addEventListener("resize", fitDevice);
 
   // Settings init
   Settings.init();

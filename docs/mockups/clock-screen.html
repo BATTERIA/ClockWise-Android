@@ -43,6 +43,7 @@
       position: relative;
       isolation: isolate;
       overflow: hidden;
+      flex-shrink: 0;
     }
 
     .clock-card::before {
@@ -61,8 +62,6 @@
       height: 240px;
       margin: 0 auto;
       display: block;
-      position: relative;
-      z-index: 1;
     }
 
     /* Digital time display */
@@ -99,6 +98,7 @@
       flex-direction: column;
       align-items: center;
       gap: 4px;
+      flex-shrink: 0;
     }
 
     .time-words-en {
@@ -115,10 +115,11 @@
 
     /* Level progress card (bottom) — leaves room for the FAB which floats on the screen */
     .level-card {
-      margin: 8px 16px 88px;
+      margin: 8px 16px 96px;
       padding: 16px 20px;
       background: var(--md-sys-color-secondary-container);
       border-radius: 20px;
+      flex-shrink: 0;
     }
 
     .level-header {
@@ -198,6 +199,7 @@
       display: flex;
       gap: 12px;
       margin: 0 16px 8px;
+      flex-shrink: 0;
     }
 
     .stat-pill {

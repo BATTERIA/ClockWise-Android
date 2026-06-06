@@ -308,7 +308,7 @@ body {
 /* ---------- FAB ---------- */
 .m3-fab {
   position: absolute;
-  bottom: 40px;          /* clear the nav pill */
+  bottom: 56px;          /* sit above gesture nav and level card */
   right: 16px;
   height: 56px;
   min-width: 56px;

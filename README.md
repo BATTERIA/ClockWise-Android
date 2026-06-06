@@ -40,4 +40,6 @@ app/src/main/java/com/batteria/clockwise/
 
 ## License
 
-Private — © 2026 BATTERIA
+MIT — free and open source for everyone ❤️
+
+If you like this project, consider [buying me a coffee ☕](https://github.com/BATTERIA) (coming soon).

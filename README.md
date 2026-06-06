@@ -31,7 +31,12 @@ app/src/main/java/com/batteria/clockwise/
 
 ## Documentation
 
-📄 [Product Proposal (docs/proposal.html)](docs/proposal.html)
+- 📄 [Product Proposal](docs/proposal.html)
+- 🎨 [M3 Design Mockups](docs/mockups/index.html) — high-fidelity HTML previews of all main screens
+  - [Clock Screen](docs/mockups/clock-screen.html)
+  - [Quiz Screen](docs/mockups/quiz-screen.html)
+  - [Settings Screen](docs/mockups/settings-screen.html)
+  - [Achievements](docs/mockups/achievements-screen.html)
 
 ## License
 

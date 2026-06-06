@@ -129,6 +129,25 @@
       margin-bottom: 10px;
     }
 
+    .level-stars-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: 10px;
+      padding: 2px 10px;
+      background: rgba(255, 255, 255, 0.55);
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--md-sys-color-on-secondary-container);
+    }
+
+    .level-stars-inline .material-symbols-rounded {
+      font-size: 16px;
+      color: #F59E0B;
+      font-variation-settings: 'FILL' 1;
+    }
+
     .level-badge {
       display: flex;
       align-items: center;
@@ -436,10 +455,10 @@
             <div class="level-badge">
               <span class="level-num">1</span>
               <span>Apprentice</span>
-            </div>
-            <div class="stars-count">
-              <span class="material-symbols-rounded">star</span>
-              <span>5 / 10</span>
+              <span class="level-stars-inline">
+                <span class="material-symbols-rounded">star</span>
+                5 / 10
+              </span>
             </div>
           </div>
           <div class="level-progress-track">

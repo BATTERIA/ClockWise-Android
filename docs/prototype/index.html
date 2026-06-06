@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#4F46E5">
+  <title>ClockWise — Interactive Prototype</title>
+  <meta name="description" content="Fully interactive M3 prototype of the ClockWise Android app for kids.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wdth,wght@8..144,25..151,300..900&family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/m3-tokens.css">
+  <link rel="stylesheet" href="css/m3-components.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="%234F46E5"/><circle cx="12" cy="12" r="1" fill="white"/><line x1="12" y1="12" x2="12" y2="7" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="12" x2="15" y2="14" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>'>
+</head>
+<body>
+
+<div class="backdrop">
+  <!-- Brand / corner badges -->
+  <div class="brand-corner">
+    <span class="clock-emoji material-symbols-rounded">schedule</span>
+    <span>ClockWise · Interactive Prototype</span>
+  </div>
+  <button id="global-theme-toggle" class="theme-toggle" title="Toggle theme">
+    <span class="material-symbols-rounded">dark_mode</span>
+  </button>
+  <div class="footer-link">
+    💡 All state persists in <code>localStorage</code> · Open DevTools to inspect
+  </div>
+
+  <!-- ============= DEVICE FRAME ============= -->
+  <div class="device-frame">
+    <div class="notch"></div>
+    <div class="device-screen">
+
+      <!-- Status bar -->
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <div class="right">
+          <span class="material-symbols-rounded">signal_cellular_alt</span>
+          <span class="material-symbols-rounded">wifi</span>
+          <span class="battery">
+            <span>85%</span>
+            <span class="battery-icon"><span class="battery-fill"></span></span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Screen stack -->
+      <div class="screen-stack" id="screen-stack">
+
+        <!-- ===== CLOCK SCREEN ===== -->
+        <section class="screen clock-screen active" data-screen="clock">
+          <div class="m3-top-bar center">
+            <button class="m3-icon-btn ripple-container" data-open-settings>
+              <span class="material-symbols-rounded">menu</span>
+              <span class="state-layer"></span>
+            </button>
+            <h1 class="title" data-i18n="app_name">ClockWise</h1>
+            <button class="m3-chip ripple-container" id="lang-chip" title="Switch language" style="margin-right:4px">EN</button>
+            <button class="m3-icon-btn ripple-container" data-open-settings>
+              <span class="material-symbols-rounded">settings</span>
+              <span class="state-layer"></span>
+            </button>
+          </div>
+
+          <div class="screen-content">
+            <div class="clock-section">
+              <div id="mode-chips"></div>
+
+              <div class="clock-card">
+                <svg class="analog-clock" id="main-clock" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg"></svg>
+
+                <div class="digital-time" id="digital-display">
+                  <span class="time-main">00:00</span>
+                  <span class="seconds"></span>
+                  <span class="ampm"></span>
+                </div>
+                <div class="time-words" id="time-words">—</div>
+                <div class="drag-hint" data-i18n="drag_hint">Tap clock to hear time · drag hands to set</div>
+              </div>
+
+              <div class="quick-stats" id="quick-stats"></div>
+
+              <div class="level-card" id="level-card"></div>
+            </div>
+          </div>
+
+          <!-- FAB -->
+          <button class="m3-fab extended primary clock-fab ripple-container" id="clock-fab">
+            <span class="material-symbols-rounded">play_arrow</span>
+            <span class="label" data-i18n="quiz_fab">Practice</span>
+            <span class="state-layer"></span>
+          </button>
+        </section>
+
+        <!-- ===== QUIZ SCREEN ===== -->
+        <section class="screen quiz-screen" data-screen="quiz">
+          <div class="m3-top-bar">
+            <button class="m3-icon-btn ripple-container" onclick="Router.navigate('clock')">
+              <span class="material-symbols-rounded">arrow_back</span>
+              <span class="state-layer"></span>
+            </button>
+            <h1 class="title" data-i18n="quiz_title">Time Quiz</h1>
+            <button class="m3-icon-btn ripple-container" data-open-settings>
+              <span class="material-symbols-rounded">settings</span>
+              <span class="state-layer"></span>
+            </button>
+          </div>
+
+          <div class="screen-content">
+            <div class="quiz-progress" id="quiz-progress-info"></div>
+            <div id="quiz-card-wrap"></div>
+          </div>
+        </section>
+
+        <!-- ===== ACHIEVEMENTS SCREEN ===== -->
+        <section class="screen ach-screen" data-screen="achievements">
+          <div class="m3-top-bar">
+            <button class="m3-icon-btn ripple-container" onclick="Router.navigate('clock')">
+              <span class="material-symbols-rounded">arrow_back</span>
+              <span class="state-layer"></span>
+            </button>
+            <h1 class="title" data-i18n="achievements_title">Achievements</h1>
+            <button class="m3-icon-btn ripple-container" data-open-settings>
+              <span class="material-symbols-rounded">settings</span>
+              <span class="state-layer"></span>
+            </button>
+          </div>
+
+          <div class="screen-content">
+            <div class="stars-hero" id="stars-hero"></div>
+            <div class="ach-list" id="ach-list"></div>
+          </div>
+        </section>
+
+        <!-- ===== SCRIM / OVERLAYS ===== -->
+        <div class="m3-scrim" id="scrim"></div>
+
+        <!-- ===== SETTINGS SHEET ===== -->
+        <div class="m3-bottom-sheet settings-sheet" id="settings-sheet">
+          <div class="drag-handle"></div>
+          <div class="sheet-header">
+            <h2 class="sheet-title" data-i18n="settings_title">Settings</h2>
+            <button class="m3-btn text" data-close data-i18n="settings_close">Done</button>
+          </div>
+
+          <div class="sheet-content">
+            <!-- Parent banner -->
+            <div class="parent-banner">
+              <span class="material-symbols-rounded">shield_person</span>
+              <div class="content">
+                <div class="title" data-i18n="settings_parent_unlock">Unlock all features</div>
+                <div class="sub" data-i18n="settings_parent_unlock_desc">Skip level requirements</div>
+              </div>
+              <label class="m3-switch">
+                <input type="checkbox" data-setting="parentUnlockAll">
+                <span class="track"></span>
+                <span class="thumb"></span>
+              </label>
+            </div>
+
+            <!-- Language -->
+            <div class="section-label" data-i18n="settings_lang_label">App language</div>
+            <div class="section-card">
+              <div class="m3-list-item" style="cursor:default">
+                <span class="material-symbols-rounded leading">translate</span>
+                <div class="content">
+                  <div class="headline" data-i18n="settings_lang">Language & Voice</div>
+                </div>
+                <div class="trailing">
+                  <div class="m3-segmented" data-setting="language">
+                    <button class="segment" data-value="en">EN</button>
+                    <button class="segment" data-value="zh">中</button>
+                  </div>
+                </div>
+              </div>
+              <div class="m3-divider"></div>
+              <div class="m3-list-item">
+                <span class="material-symbols-rounded leading">volume_up</span>
+                <div class="content">
+                  <div class="headline" data-i18n="settings_voice">Voice readout</div>
+                  <div class="supporting" data-i18n="settings_voice_desc">Tap clock to hear the time</div>
+                </div>
+                <label class="m3-switch">
+                  <input type="checkbox" data-setting="voiceEnabled">
+                  <span class="track"></span>
+                  <span class="thumb"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Display -->
+            <div class="section-label" data-i18n="settings_display">Display</div>
+            <div class="section-card">
+              <div class="m3-list-item">
+                <span class="material-symbols-rounded leading">schedule</span>
+                <div class="content">
+                  <div class="headline" data-i18n="settings_24h">24-hour format</div>
+                  <div class="supporting" data-i18n="settings_24h_desc">Use 24-hour digital time</div>
+                </div>
+                <label class="m3-switch">
+                  <input type="checkbox" data-setting="format24h">
+                  <span class="track"></span>
+                  <span class="thumb"></span>
+                </label>
+              </div>
+              <div class="m3-divider"></div>
+              <div class="m3-list-item">
+                <span class="material-symbols-rounded leading">dark_mode</span>
+                <div class="content">
+                  <div class="headline" data-i18n="settings_dark">Dark theme</div>
+                </div>
+                <label class="m3-switch">
+                  <input type="checkbox" data-setting="__theme">
+                  <span class="track"></span>
+                  <span class="thumb"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Clock face -->
+            <div class="section-label" data-i18n="settings_clock_face">Clock Face</div>
+            <div class="section-card">
+              <div class="m3-list-item">
+                <span class="material-symbols-rounded leading">123</span>
+                <div class="content">
+                  <div class="headline" data-i18n="settings_hours_num">Show hour numbers</div>
+                </div>
+                <label class="m3-switch">
+                  <input type="checkbox" data-setting="showHourNumbers">
+                  <span class="track"></span>
+                  <span class="thumb"></span>
+                </label>
+              </div>
+              <div class="m3-divider"></div>
+              <div class="m3-list-item">
+                <span class="material-symbols-rounded leading">more_horiz</span>
+                <div class="content">
+                  <div class="headline" data-i18n="settings_minutes_num">Show minute numbers</div>
+                </div>
+                <label class="m3-switch">
+                  <input type="checkbox" data-setting="showMinuteNumbers">
+                  <span class="track"></span>
+                  <span class="thumb"></span>
+                </label>
+              </div>
+              <div class="m3-divider"></div>
+              <div class="m3-list-item">
+                <span class="material-symbols-rounded leading">timer</span>
+                <div class="content">
+                  <div class="headline" data-i18n="settings_seconds">Show second hand</div>
+                </div>
+                <label class="m3-switch">
+                  <input type="checkbox" data-setting="showSecondHand">
+                  <span class="track"></span>
+                  <span class="thumb"></span>
+                </label>
+              </div>
+              <div class="m3-divider"></div>
+              <div class="m3-list-item" data-requires="high_contrast">
+                <span class="material-symbols-rounded leading">contrast</span>
+                <div class="content">
+                  <div class="headline" data-i18n="settings_contrast">High contrast clock</div>
+                </div>
+                <label class="m3-switch">
+                  <input type="checkbox" data-setting="highContrast">
+                  <span class="track"></span>
+                  <span class="thumb"></span>
+                </label>
+              </div>
+              <div class="m3-divider"></div>
+              <div class="m3-list-item" data-requires="hand_thickness" style="flex-direction:column;align-items:stretch;gap:8px">
+                <div style="display:flex;align-items:center;gap:16px;width:100%">
+                  <span class="material-symbols-rounded leading">line_weight</span>
+                  <div class="content">
+                    <div class="headline" data-i18n="settings_thickness">Hand thickness</div>
+                  </div>
+                </div>
+                <div class="m3-slider" data-setting="handThickness" data-min="0.5" data-max="1.5" data-step="0.1" style="margin-left:56px;width:calc(100% - 72px)">
+                  <div class="track"><div class="track-fill"></div></div>
+                  <div class="thumb"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Parent -->
+            <div class="section-label" data-i18n="settings_parent">Parent Controls</div>
+            <div class="section-card">
+              <div class="m3-list-item">
+                <span class="material-symbols-rounded leading" style="color:var(--md-sys-color-error)">restart_alt</span>
+                <div class="content">
+                  <div class="headline" data-i18n="settings_reset">Reset progress</div>
+                  <div class="supporting">Erase stars, level, and achievements</div>
+                </div>
+                <button class="m3-btn outlined" data-action="reset" style="height:32px;padding:0 12px;font-size:13px">Reset</button>
+              </div>
+            </div>
+
+            <!-- About -->
+            <div class="section-label" data-i18n="settings_about">About</div>
+            <div class="section-card" style="margin-bottom:16px">
+              <div class="m3-list-item" style="cursor:default">
+                <span class="material-symbols-rounded leading">info</span>
+                <div class="content">
+                  <div class="headline">ClockWise v0.1</div>
+                  <div class="supporting">Interactive M3 prototype</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== SNACKBAR ===== -->
+        <div class="m3-snackbar" id="snackbar">
+          <span class="message"></span>
+          <button class="action" style="display:none">OK</button>
+        </div>
+
+        <!-- ===== LEVEL UP OVERLAY ===== -->
+        <div class="levelup-overlay" id="levelup-overlay"></div>
+
+      </div>
+      <!-- /screen-stack -->
+
+      <!-- Bottom Navigation -->
+      <nav class="m3-bottom-nav">
+        <button class="nav-item active" data-target="clock">
+          <span class="icon-pill"><span class="material-symbols-rounded">schedule</span></span>
+          <span class="label" data-i18n="nav_clock">Clock</span>
+        </button>
+        <button class="nav-item" data-target="quiz">
+          <span class="icon-pill"><span class="material-symbols-rounded">quiz</span></span>
+          <span class="label" data-i18n="nav_quiz">Quiz</span>
+        </button>
+        <button class="nav-item" data-target="achievements">
+          <span class="icon-pill"><span class="material-symbols-rounded">emoji_events</span></span>
+          <span class="label" data-i18n="nav_ach">Stars</span>
+        </button>
+        <button class="nav-item" data-target="settings">
+          <span class="icon-pill"><span class="material-symbols-rounded">settings</span></span>
+          <span class="label" data-i18n="nav_settings">Settings</span>
+        </button>
+      </nav>
+
+      <div class="gesture-pill"></div>
+    </div>
+    <!-- /device-screen -->
+  </div>
+  <!-- /device-frame -->
+</div>
+<!-- /backdrop -->
+
+<!-- Scripts (order matters: state → router → clock → speech → quiz → settings → main) -->
+<script src="js/state.js"></script>
+<script src="js/router.js"></script>
+<script src="js/clock.js"></script>
+<script src="js/speech.js"></script>
+<script src="js/quiz.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>

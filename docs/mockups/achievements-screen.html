@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Achievements — ClockWise M3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400;8..144,500;8..144,600;8..144,700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/m3.css">
+  <style>
+    body {
+      background:
+        radial-gradient(at top left, #FEF3C7, transparent 40%),
+        radial-gradient(at bottom right, #FCE7F3, transparent 40%),
+        #FFFBEB;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .achievements-screen {
+      background: linear-gradient(180deg, #FFFBFE 0%, #FFF7ED 60%, #FEF3C7 100%);
+    }
+
+    .achievements-content {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 16px;
+    }
+
+    /* Hero / star counter */
+    .hero-card {
+      margin: 16px;
+      padding: 28px 20px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(251, 191, 36, 0.3), transparent 50%),
+        linear-gradient(135deg, #FEF3C7 0%, #FDE68A 50%, #FCD34D 100%);
+      border-radius: 28px;
+      box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.06),
+        0 12px 32px rgba(251, 191, 36, 0.25);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::before {
+      content: '';
+      position: absolute;
+      top: -20%;
+      right: -10%;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.5), transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero-trophy {
+      font-size: 64px;
+      display: block;
+      margin-bottom: 4px;
+      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+      position: relative;
+    }
+
+    .hero-label {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #92400E;
+      position: relative;
+    }
+
+    .hero-count {
+      font-size: 64px;
+      font-weight: 700;
+      color: #78350F;
+      line-height: 1;
+      margin: 4px 0;
+      font-variant-numeric: tabular-nums;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hero-count .material-symbols-rounded {
+      font-size: 48px;
+      color: #F59E0B;
+      font-variation-settings: 'FILL' 1, 'wght' 400;
+      filter: drop-shadow(0 4px 8px rgba(245, 158, 11, 0.4));
+    }
+
+    .hero-sub {
+      font-size: 13px;
+      color: #92400E;
+      opacity: 0.8;
+      margin-top: 4px;
+      position: relative;
+    }
+
+    /* Mini progress bar */
+    .hero-progress-wrap {
+      margin-top: 16px;
+      position: relative;
+    }
+
+    .hero-progress-text {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: #92400E;
+      margin-bottom: 6px;
+    }
+
+    .hero-progress-bar {
+      height: 8px;
+      background: rgba(120, 53, 15, 0.15);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .hero-progress-fill {
+      height: 100%;
+      width: 47%;
+      background: linear-gradient(90deg, #F59E0B, #EA580C);
+      border-radius: 4px;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+    }
+
+    /* Filter chips */
+    .filter-row {
+      padding: 0 16px 12px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .filter-row::-webkit-scrollbar { display: none; }
+
+    .filter-row .m3-chip {
+      flex-shrink: 0;
+    }
+
+    /* Badges grid */
+    .badges-grid {
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .badge-card {
+      background: var(--md-sys-color-surface-container-lowest);
+      border-radius: 20px;
+      padding: 16px 12px 14px;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+      position: relative;
+      overflow: hidden;
+      transition: transform var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+    }
+
+    .badge-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .badge-card.locked {
+      background: var(--md-sys-color-surface-container);
+      filter: grayscale(0.7);
+      opacity: 0.65;
+    }
+
+    .badge-card.unlocked::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -20%;
+      width: 60%;
+      height: 100%;
+      background: radial-gradient(ellipse, rgba(251, 191, 36, 0.15), transparent 60%);
+      pointer-events: none;
+    }
+
+    .badge-icon-wrap {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 8px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      background: var(--md-sys-color-secondary-container);
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.20);
+      position: relative;
+    }
+
+    .badge-card.locked .badge-icon-wrap {
+      background: var(--md-sys-color-surface-container-high);
+      box-shadow: none;
+    }
+
+    .badge-card.unlocked .badge-icon-wrap.gold {
+      background: linear-gradient(135deg, #FEF3C7, #FCD34D);
+      box-shadow: 0 4px 12px rgba(251, 191, 36, 0.35);
+    }
+
+    .badge-card.unlocked .badge-icon-wrap.pink {
+      background: linear-gradient(135deg, #FCE7F3, #F9A8D4);
+      box-shadow: 0 4px 12px rgba(236, 72, 153, 0.30);
+    }
+
+    .badge-card.unlocked .badge-icon-wrap.indigo {
+      background: linear-gradient(135deg, #E0E7FF, #A5B4FC);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.30);
+    }
+
+    .badge-card.unlocked .badge-icon-wrap.green {
+      background: linear-gradient(135deg, #D1FAE5, #6EE7B7);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.30);
+    }
+
+    .badge-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--md-sys-color-on-surface);
+      margin-bottom: 2px;
+    }
+
+    .badge-desc {
+      font-size: 11px;
+      color: var(--md-sys-color-on-surface-variant);
+      line-height: 1.3;
+      min-height: 28px;
+    }
+
+    .badge-status {
+      margin-top: 8px;
+      padding: 3px 10px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      display: inline-block;
+    }
+
+    .badge-card.unlocked .badge-status {
+      background: var(--md-sys-color-success);
+      color: white;
+    }
+
+    .badge-card.locked .badge-status {
+      background: var(--md-sys-color-surface-container-highest);
+      color: var(--md-sys-color-on-surface-variant);
+    }
+
+    .badge-card.locked .badge-icon-wrap::after {
+      content: '🔒';
+      position: absolute;
+      bottom: -4px;
+      right: -4px;
+      width: 22px;
+      height: 22px;
+      background: var(--md-sys-color-surface);
+      border-radius: 50%;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--md-sys-elevation-1);
+    }
+
+    /* Section header */
+    .section-heading {
+      padding: 16px 20px 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--md-sys-color-on-surface);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-heading .count-pill {
+      background: var(--md-sys-color-secondary-container);
+      color: var(--md-sys-color-on-secondary-container);
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="device-frame">
+    <div class="device-screen achievements-screen">
+
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 24 24"><path d="M2 22h4V10H2v12zm6 0h4V4H8v18zm6 0h4V14h-4v8zm6 0h4V8h-4v14z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 0 0-6 0zm-4-4l2 2a7.074 7.074 0 0 1 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M16.67 4H15V2h-6v2H7.33C6.6 4 6 4.6 6 5.33v15.33C6 21.4 6.6 22 7.33 22h9.33c.74 0 1.34-.6 1.34-1.33V5.33C18 4.6 17.4 4 16.67 4z"/></svg>
+        </span>
+      </div>
+
+      <!-- Top App Bar -->
+      <div class="m3-topbar center-aligned">
+        <div class="leading">
+          <button class="m3-icon-btn" aria-label="Back">
+            <span class="material-symbols-rounded">arrow_back</span>
+          </button>
+        </div>
+        <div class="title">Achievements</div>
+        <div class="trailing">
+          <button class="m3-icon-btn" aria-label="Share">
+            <span class="material-symbols-rounded">share</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="achievements-content">
+
+        <!-- Hero card -->
+        <div class="hero-card">
+          <span class="hero-trophy">🏆</span>
+          <div class="hero-label">Total Stars · 总星星</div>
+          <div class="hero-count">
+            <span class="material-symbols-rounded">star</span>
+            47
+          </div>
+          <div class="hero-sub">Keep going! 7 more for Level 2 🎉</div>
+
+          <div class="hero-progress-wrap">
+            <div class="hero-progress-text">
+              <span>Level 1 · Apprentice</span>
+              <span>47 / 100</span>
+            </div>
+            <div class="hero-progress-bar">
+              <div class="hero-progress-fill"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter chips -->
+        <div class="filter-row">
+          <div class="m3-chip selected">
+            <span class="material-symbols-rounded">apps</span>
+            All · 12/24
+          </div>
+          <div class="m3-chip">
+            <span class="material-symbols-rounded">lock_open</span>
+            Unlocked
+          </div>
+          <div class="m3-chip">
+            <span class="material-symbols-rounded">lock</span>
+            Locked
+          </div>
+          <div class="m3-chip">
+            <span class="material-symbols-rounded">trending_up</span>
+            Recent
+          </div>
+        </div>
+
+        <!-- Section: Unlocked -->
+        <div class="section-heading">
+          <span class="material-symbols-rounded" style="color:#10B981;">verified</span>
+          <span>Unlocked</span>
+          <span class="count-pill">8</span>
+        </div>
+
+        <div class="badges-grid">
+          <!-- Badge 1 -->
+          <div class="badge-card unlocked">
+            <div class="badge-icon-wrap gold">🌟</div>
+            <div class="badge-name">First Steps</div>
+            <div class="badge-desc">Complete your first quiz</div>
+            <span class="badge-status">✓ Earned</span>
+          </div>
+
+          <!-- Badge 2 -->
+          <div class="badge-card unlocked">
+            <div class="badge-icon-wrap pink">🎯</div>
+            <div class="badge-name">On Target</div>
+            <div class="badge-desc">10 correct answers in a row</div>
+            <span class="badge-status">✓ Earned</span>
+          </div>
+
+          <!-- Badge 3 -->
+          <div class="badge-card unlocked">
+            <div class="badge-icon-wrap indigo">⏰</div>
+            <div class="badge-name">Time Whiz</div>
+            <div class="badge-desc">Master o'clock times</div>
+            <span class="badge-status">✓ Earned</span>
+          </div>
+
+          <!-- Badge 4 -->
+          <div class="badge-card unlocked">
+            <div class="badge-icon-wrap green">🔥</div>
+            <div class="badge-name">On Fire</div>
+            <div class="badge-desc">5-day streak</div>
+            <span class="badge-status">✓ Earned</span>
+          </div>
+
+          <!-- Badge 5 -->
+          <div class="badge-card unlocked">
+            <div class="badge-icon-wrap gold">⭐</div>
+            <div class="badge-name">Star Collector</div>
+            <div class="badge-desc">Earn 25 stars</div>
+            <span class="badge-status">✓ Earned</span>
+          </div>
+
+          <!-- Badge 6 -->
+          <div class="badge-card unlocked">
+            <div class="badge-icon-wrap pink">🎨</div>
+            <div class="badge-name">Half Past Pro</div>
+            <div class="badge-desc">Master half-hour times</div>
+            <span class="badge-status">✓ Earned</span>
+          </div>
+        </div>
+
+        <!-- Section: Locked -->
+        <div class="section-heading" style="margin-top: 8px;">
+          <span class="material-symbols-rounded" style="color:#79747E;">lock</span>
+          <span>Locked</span>
+          <span class="count-pill" style="background:var(--md-sys-color-surface-container-high); color:var(--md-sys-color-on-surface-variant);">16</span>
+        </div>
+
+        <div class="badges-grid">
+          <div class="badge-card locked">
+            <div class="badge-icon-wrap">🚀</div>
+            <div class="badge-name">Quarter Master</div>
+            <div class="badge-desc">Master quarter-past & to</div>
+            <span class="badge-status">Locked</span>
+          </div>
+
+          <div class="badge-card locked">
+            <div class="badge-icon-wrap">🦉</div>
+            <div class="badge-name">Night Owl</div>
+            <div class="badge-desc">Master 24-hour format</div>
+            <span class="badge-status">Locked</span>
+          </div>
+
+          <div class="badge-card locked">
+            <div class="badge-icon-wrap">💎</div>
+            <div class="badge-name">Diamond Hand</div>
+            <div class="badge-desc">100-day streak</div>
+            <span class="badge-status">Locked</span>
+          </div>
+
+          <div class="badge-card locked">
+            <div class="badge-icon-wrap">🏅</div>
+            <div class="badge-name">Speed Demon</div>
+            <div class="badge-desc">Quiz in under 60s</div>
+            <span class="badge-status">Locked</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Navigation pill -->
+      <div class="nav-pill"></div>
+    </div>
+  </div>
+</body>
+</html>

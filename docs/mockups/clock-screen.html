@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clock Screen — ClockWise M3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400;8..144,500;8..144,600;8..144,700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/m3.css">
+  <style>
+    /* Page background — gallery viewing area */
+    body {
+      background:
+        radial-gradient(at top left, #EEF0FF, transparent 40%),
+        radial-gradient(at bottom right, #FFEDD5, transparent 40%),
+        #F5F3FF;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    /* Clock screen specific styling */
+    .clock-screen {
+      background:
+        radial-gradient(ellipse at top, #EEF2FF 0%, transparent 50%),
+        linear-gradient(180deg, #FFFBFE 0%, #FFFBFE 60%, #FFF7ED 100%);
+    }
+
+    /* The big analog clock */
+    .clock-card {
+      margin: 16px 16px 8px;
+      padding: 24px 16px;
+      background: var(--md-sys-color-surface-container-lowest);
+      border-radius: 28px;
+      box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.06),
+        0 8px 24px rgba(79, 70, 229, 0.10),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+    }
+
+    .clock-card::before {
+      content: '';
+      position: absolute;
+      top: -40%;
+      left: -20%;
+      width: 80%;
+      height: 80%;
+      background: radial-gradient(circle, rgba(224, 231, 255, 0.6), transparent 70%);
+      pointer-events: none;
+    }
+
+    .analog-clock {
+      width: 240px;
+      height: 240px;
+      margin: 0 auto;
+      display: block;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Digital time display */
+    .digital-time {
+      text-align: center;
+      font-family: 'Roboto Flex', monospace;
+      font-size: 56px;
+      font-weight: 600;
+      letter-spacing: -1px;
+      color: var(--md-sys-color-on-surface);
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      margin-top: 16px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .digital-time .ampm {
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--md-sys-color-primary);
+      margin-left: 6px;
+      vertical-align: top;
+      letter-spacing: 0;
+    }
+
+    /* Time in words card */
+    .time-words-card {
+      margin: 12px 16px;
+      padding: 16px 20px;
+      background: var(--md-sys-color-primary-container);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .time-words-en {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--md-sys-color-on-primary-container);
+    }
+
+    .time-words-zh {
+      font-size: 14px;
+      color: var(--md-sys-color-on-primary-container);
+      opacity: 0.7;
+    }
+
+    /* Level progress card (bottom) — leaves room for the FAB which floats on the screen */
+    .level-card {
+      margin: 8px 16px 88px;
+      padding: 16px 20px;
+      background: var(--md-sys-color-secondary-container);
+      border-radius: 20px;
+    }
+
+    .level-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .level-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: var(--md-sys-color-on-secondary-container);
+    }
+
+    .level-badge .level-num {
+      background: var(--md-sys-color-secondary);
+      color: var(--md-sys-color-on-secondary);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .stars-count {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      color: var(--md-sys-color-on-secondary-container);
+      font-size: 14px;
+    }
+
+    .stars-count .material-symbols-rounded {
+      font-size: 20px;
+      color: var(--md-sys-color-star);
+      font-variation-settings: 'FILL' 1, 'wght' 400;
+    }
+
+    .level-progress-track {
+      width: 100%;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .level-progress-fill {
+      height: 100%;
+      width: 50%;
+      background: linear-gradient(90deg, var(--md-sys-color-secondary), #FB923C);
+      border-radius: 6px;
+      box-shadow: 0 0 8px rgba(249, 115, 22, 0.4);
+      position: relative;
+    }
+
+    .level-progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: -4px;
+      width: 8px;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 4px;
+    }
+
+    /* Quick stats row */
+    .stats-row {
+      display: flex;
+      gap: 12px;
+      margin: 0 16px 8px;
+    }
+
+    .stat-pill {
+      flex: 1;
+      padding: 12px;
+      background: var(--md-sys-color-surface-container-low);
+      border-radius: 16px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .stat-pill .stat-icon {
+      font-size: 20px;
+    }
+
+    .stat-pill .stat-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--md-sys-color-on-surface);
+    }
+
+    .stat-pill .stat-label {
+      font-size: 11px;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+
+    /* Language toggle pill */
+    .lang-toggle {
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 18px;
+      background: var(--md-sys-color-surface-container-low);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface);
+      margin-left: 8px;
+    }
+
+    .lang-toggle .lang-segment {
+      padding: 4px 10px;
+      border-radius: 14px;
+      cursor: pointer;
+    }
+
+    .lang-toggle .lang-segment.active {
+      background: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+    }
+
+    /* Pulse animation on the dot */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .clock-second-hand {
+      animation: rotate-second 60s linear infinite;
+      transform-origin: 120px 120px;
+    }
+
+    @keyframes rotate-second {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="device-frame">
+    <div class="device-screen clock-screen">
+
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <!-- signal -->
+          <svg viewBox="0 0 24 24"><path d="M2 22h4V10H2v12zm6 0h4V4H8v18zm6 0h4V14h-4v8zm6 0h4V8h-4v14z"/></svg>
+          <!-- wifi -->
+          <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 0 0-6 0zm-4-4l2 2a7.074 7.074 0 0 1 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+          <!-- battery -->
+          <svg viewBox="0 0 24 24"><path d="M16.67 4H15V2h-6v2H7.33C6.6 4 6 4.6 6 5.33v15.33C6 21.4 6.6 22 7.33 22h9.33c.74 0 1.34-.6 1.34-1.33V5.33C18 4.6 17.4 4 16.67 4z"/></svg>
+        </span>
+      </div>
+
+      <!-- Top App Bar -->
+      <div class="m3-topbar center-aligned">
+        <div class="leading">
+          <button class="m3-icon-btn" aria-label="Menu">
+            <span class="material-symbols-rounded">menu</span>
+          </button>
+        </div>
+        <div class="title">ClockWise</div>
+        <div class="trailing">
+          <div class="lang-toggle">
+            <span class="lang-segment active">EN</span>
+            <span class="lang-segment">中</span>
+          </div>
+          <button class="m3-icon-btn" aria-label="Settings">
+            <span class="material-symbols-rounded">settings</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Screen content -->
+      <div class="screen-content">
+
+        <!-- Big Analog clock card -->
+        <div class="clock-card">
+          <svg class="analog-clock" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="faceGradient" cx="50%" cy="40%" r="60%">
+                <stop offset="0%" stop-color="#FFFFFF"/>
+                <stop offset="100%" stop-color="#F5F3FF"/>
+              </radialGradient>
+              <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#4F46E5"/>
+                <stop offset="100%" stop-color="#7C3AED"/>
+              </linearGradient>
+              <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+              </filter>
+            </defs>
+
+            <!-- Outer ring -->
+            <circle cx="120" cy="120" r="115" fill="none" stroke="url(#ringGradient)" stroke-width="4" opacity="0.9"/>
+
+            <!-- Face -->
+            <circle cx="120" cy="120" r="108" fill="url(#faceGradient)" filter="url(#softShadow)"/>
+
+            <!-- Hour markers (12 large) -->
+            <g stroke="#4F46E5" stroke-width="3" stroke-linecap="round">
+              <line x1="120" y1="20"  x2="120" y2="34"/>
+              <line x1="220" y1="120" x2="206" y2="120"/>
+              <line x1="120" y1="220" x2="120" y2="206"/>
+              <line x1="20"  y1="120" x2="34"  y2="120"/>
+            </g>
+
+            <!-- Diagonal hour markers (smaller, lighter) -->
+            <g stroke="#A5B4FC" stroke-width="2.5" stroke-linecap="round">
+              <line x1="170.5" y1="33.4"  x2="163.6" y2="45.4"/>
+              <line x1="206.6" y1="69.5"  x2="194.6" y2="76.4"/>
+              <line x1="206.6" y1="170.5" x2="194.6" y2="163.6"/>
+              <line x1="170.5" y1="206.6" x2="163.6" y2="194.6"/>
+              <line x1="69.5"  y1="206.6" x2="76.4"  y2="194.6"/>
+              <line x1="33.4"  y1="170.5" x2="45.4"  y2="163.6"/>
+              <line x1="33.4"  y1="69.5"  x2="45.4"  y2="76.4"/>
+              <line x1="69.5"  y1="33.4"  x2="76.4"  y2="45.4"/>
+            </g>
+
+            <!-- Minute markers (60 total — show only the small ones) -->
+            <g stroke="#E0E7FF" stroke-width="1.5" stroke-linecap="round">
+              <line x1="120" y1="20" x2="120" y2="26" opacity="0"/>
+              <!-- generated minute ticks would go here; keeping clean for child-friendly look -->
+            </g>
+
+            <!-- Numbers (kid-friendly large numerals) -->
+            <g font-family="Roboto Flex, sans-serif" font-weight="700" font-size="26" fill="#1E1B4B" text-anchor="middle">
+              <text x="120" y="58">12</text>
+              <text x="184" y="129">3</text>
+              <text x="120" y="200">6</text>
+              <text x="56"  y="129">9</text>
+            </g>
+            <g font-family="Roboto Flex, sans-serif" font-weight="500" font-size="18" fill="#6366F1" text-anchor="middle">
+              <text x="151" y="65">1</text>
+              <text x="175" y="89">2</text>
+              <text x="175" y="170">4</text>
+              <text x="151" y="194">5</text>
+              <text x="89"  y="194">7</text>
+              <text x="65"  y="170">8</text>
+              <text x="65"  y="89">10</text>
+              <text x="89"  y="65">11</text>
+            </g>
+
+            <!-- Hour hand (pointing to 9 — for "9:41") -->
+            <g transform="rotate(295 120 120)">
+              <rect x="115" y="60" width="10" height="68" rx="5" fill="#4F46E5"/>
+            </g>
+
+            <!-- Minute hand (pointing near 41 minutes) -->
+            <g transform="rotate(246 120 120)">
+              <rect x="117" y="32" width="6" height="96" rx="3" fill="#F97316"/>
+            </g>
+
+            <!-- Second hand -->
+            <g transform="rotate(120 120 120)">
+              <line x1="120" y1="38" x2="120" y2="135" stroke="#EC4899" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="120" cy="34" r="4" fill="#EC4899"/>
+            </g>
+
+            <!-- Center dot -->
+            <circle cx="120" cy="120" r="8" fill="#1E1B4B"/>
+            <circle cx="120" cy="120" r="3" fill="#FFFFFF"/>
+          </svg>
+
+          <div class="digital-time">
+            9:41<span class="ampm">AM</span>
+          </div>
+        </div>
+
+        <!-- Time in words -->
+        <div class="time-words-card">
+          <div class="time-words-en">It's twenty to ten 🌅</div>
+          <div class="time-words-zh">差二十分十点 · 上午</div>
+        </div>
+
+        <!-- Stats row -->
+        <div class="stats-row">
+          <div class="stat-pill">
+            <span class="material-symbols-rounded stat-icon" style="color:#10B981;">school</span>
+            <div class="stat-value">12</div>
+            <div class="stat-label">Quizzes</div>
+          </div>
+          <div class="stat-pill">
+            <span class="material-symbols-rounded stat-icon" style="color:#FBBF24; font-variation-settings:'FILL' 1;">star</span>
+            <div class="stat-value">47</div>
+            <div class="stat-label">Stars</div>
+          </div>
+          <div class="stat-pill">
+            <span class="material-symbols-rounded stat-icon" style="color:#EF4444;">local_fire_department</span>
+            <div class="stat-value">5</div>
+            <div class="stat-label">Streak</div>
+          </div>
+        </div>
+
+        <!-- Level card -->
+        <div class="level-card">
+          <div class="level-header">
+            <div class="level-badge">
+              <span class="level-num">1</span>
+              <span>Apprentice</span>
+            </div>
+            <div class="stars-count">
+              <span class="material-symbols-rounded">star</span>
+              <span>5 / 10</span>
+            </div>
+          </div>
+          <div class="level-progress-track">
+            <div class="level-progress-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAB (outside scrollable content, anchored to screen) -->
+      <button class="m3-fab primary">
+        <span class="material-symbols-rounded">school</span>
+        Quiz
+      </button>
+
+      <!-- Navigation pill -->
+      <div class="nav-pill"></div>
+    </div>
+  </div>
+</body>
+</html>

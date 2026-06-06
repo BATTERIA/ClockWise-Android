@@ -1,0 +1,784 @@
+/* ============================================
+   Material Design 3 — ClockWise Android
+   Shared design tokens & components
+   ============================================ */
+
+/* ---------- Design Tokens ---------- */
+:root {
+  /* Color — Primary (Indigo) */
+  --md-sys-color-primary: #4F46E5;
+  --md-sys-color-on-primary: #FFFFFF;
+  --md-sys-color-primary-container: #E0E7FF;
+  --md-sys-color-on-primary-container: #1E1B4B;
+
+  /* Color — Secondary (Orange) */
+  --md-sys-color-secondary: #F97316;
+  --md-sys-color-on-secondary: #FFFFFF;
+  --md-sys-color-secondary-container: #FED7AA;
+  --md-sys-color-on-secondary-container: #431407;
+
+  /* Color — Tertiary (Soft Pink) */
+  --md-sys-color-tertiary: #EC4899;
+  --md-sys-color-on-tertiary: #FFFFFF;
+  --md-sys-color-tertiary-container: #FCE7F3;
+  --md-sys-color-on-tertiary-container: #500724;
+
+  /* Color — Surface */
+  --md-sys-color-surface: #FFFBFE;
+  --md-sys-color-on-surface: #1C1B1F;
+  --md-sys-color-surface-variant: #E7E0EC;
+  --md-sys-color-on-surface-variant: #49454F;
+  --md-sys-color-surface-container-lowest: #FFFFFF;
+  --md-sys-color-surface-container-low: #F7F2FA;
+  --md-sys-color-surface-container: #F3EDF7;
+  --md-sys-color-surface-container-high: #ECE6F0;
+  --md-sys-color-surface-container-highest: #E6E0E9;
+  --md-sys-color-surface-bright: #FEF7FF;
+  --md-sys-color-surface-dim: #DED8E1;
+
+  /* Color — Outline */
+  --md-sys-color-outline: #79747E;
+  --md-sys-color-outline-variant: #CAC4D0;
+
+  /* Color — Other */
+  --md-sys-color-error: #BA1A1A;
+  --md-sys-color-on-error: #FFFFFF;
+  --md-sys-color-error-container: #FFDAD6;
+  --md-sys-color-on-error-container: #410002;
+  --md-sys-color-background: #FFFBFE;
+  --md-sys-color-on-background: #1C1B1F;
+  --md-sys-color-scrim: rgba(0, 0, 0, 0.32);
+  --md-sys-color-shadow: #000000;
+  --md-sys-color-inverse-surface: #313033;
+  --md-sys-color-inverse-on-surface: #F4EFF4;
+  --md-sys-color-inverse-primary: #B4B1FF;
+
+  /* Star/reward colors */
+  --md-sys-color-star: #FBBF24;
+  --md-sys-color-success: #10B981;
+
+  /* Elevation */
+  --md-sys-elevation-0: none;
+  --md-sys-elevation-1: 0px 1px 2px rgba(0, 0, 0, 0.30), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+  --md-sys-elevation-2: 0px 1px 2px rgba(0, 0, 0, 0.30), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+  --md-sys-elevation-3: 0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px rgba(0, 0, 0, 0.30);
+  --md-sys-elevation-4: 0px 6px 10px 4px rgba(0, 0, 0, 0.15), 0px 2px 3px rgba(0, 0, 0, 0.30);
+  --md-sys-elevation-5: 0px 8px 12px 6px rgba(0, 0, 0, 0.15), 0px 4px 4px rgba(0, 0, 0, 0.30);
+
+  /* Shape (corner radii) */
+  --md-sys-shape-corner-none: 0;
+  --md-sys-shape-corner-extra-small: 4px;
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-full: 9999px;
+
+  /* Motion */
+  --md-sys-motion-easing-standard: cubic-bezier(0.2, 0.0, 0, 1.0);
+  --md-sys-motion-easing-emphasized: cubic-bezier(0.2, 0.0, 0, 1.0);
+  --md-sys-motion-duration-short: 200ms;
+  --md-sys-motion-duration-medium: 400ms;
+}
+
+/* ---------- Reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  font-family: 'Roboto Flex', 'Roboto', system-ui, -apple-system, sans-serif;
+  font-feature-settings: 'liga';
+  color: var(--md-sys-color-on-background);
+  background: var(--md-sys-color-background);
+  line-height: 1.4;
+}
+
+/* Material Symbols default */
+.material-symbols-rounded,
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+  user-select: none;
+  vertical-align: middle;
+}
+
+.material-symbols-rounded.filled {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ---------- Typography ---------- */
+.md-display-large    { font-size: 57px; line-height: 64px; font-weight: 400; letter-spacing: -0.25px; }
+.md-display-medium   { font-size: 45px; line-height: 52px; font-weight: 400; }
+.md-display-small    { font-size: 36px; line-height: 44px; font-weight: 400; }
+.md-headline-large   { font-size: 32px; line-height: 40px; font-weight: 400; }
+.md-headline-medium  { font-size: 28px; line-height: 36px; font-weight: 400; }
+.md-headline-small   { font-size: 24px; line-height: 32px; font-weight: 400; }
+.md-title-large      { font-size: 22px; line-height: 28px; font-weight: 500; }
+.md-title-medium     { font-size: 16px; line-height: 24px; font-weight: 500; letter-spacing: 0.15px; }
+.md-title-small      { font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0.1px; }
+.md-body-large       { font-size: 16px; line-height: 24px; font-weight: 400; letter-spacing: 0.5px; }
+.md-body-medium      { font-size: 14px; line-height: 20px; font-weight: 400; letter-spacing: 0.25px; }
+.md-body-small       { font-size: 12px; line-height: 16px; font-weight: 400; letter-spacing: 0.4px; }
+.md-label-large      { font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0.1px; }
+.md-label-medium     { font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.5px; }
+.md-label-small      { font-size: 11px; line-height: 16px; font-weight: 500; letter-spacing: 0.5px; }
+
+/* ============================================
+   PHONE FRAME — Pixel 7 style (360 × 800 dp)
+   ============================================ */
+.device-frame {
+  width: 380px;
+  height: 820px;
+  background: #1A1A1A;
+  border-radius: 48px;
+  padding: 10px;
+  box-shadow:
+    0 0 0 2px #333,
+    0 20px 60px rgba(0, 0, 0, 0.35),
+    0 8px 20px rgba(79, 70, 229, 0.15);
+  position: relative;
+  margin: 24px auto;
+}
+
+.device-screen {
+  width: 100%;
+  height: 100%;
+  background: var(--md-sys-color-background);
+  border-radius: 40px;
+  overflow: hidden;
+  position: relative;     /* anchor for FAB */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Camera punch-hole */
+.device-frame::after {
+  content: '';
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: #000;
+  border-radius: 50%;
+  z-index: 100;
+  box-shadow: inset 0 0 2px #222;
+}
+
+/* ---------- Status Bar (top) ---------- */
+.status-bar {
+  height: 32px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--md-sys-color-on-surface);
+  font-size: 14px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.status-bar .time {
+  font-weight: 600;
+}
+
+.status-bar .icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-bar .icons svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.status-bar.dark { color: #fff; }
+
+/* ---------- Navigation pill (bottom) ---------- */
+.nav-pill {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: transparent;
+}
+
+.nav-pill::after {
+  content: '';
+  width: 120px;
+  height: 4px;
+  background: var(--md-sys-color-on-surface);
+  border-radius: 4px;
+  opacity: 0.8;
+}
+
+.nav-pill.dark::after { background: #fff; }
+
+/* ---------- Screen content area ---------- */
+.screen-content {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* ============================================
+   COMPONENTS — M3
+   ============================================ */
+
+/* ---------- Top App Bar ---------- */
+.m3-topbar {
+  height: 64px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--md-sys-color-surface);
+  flex-shrink: 0;
+  z-index: 5;
+}
+
+.m3-topbar.center-aligned {
+  justify-content: space-between;
+}
+
+.m3-topbar .title {
+  flex: 1;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+}
+
+.m3-topbar .leading,
+.m3-topbar .trailing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ---------- Icon Button ---------- */
+.m3-icon-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--md-sys-color-on-surface);
+  cursor: pointer;
+  transition: background var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+  position: relative;
+}
+
+.m3-icon-btn:hover {
+  background: rgba(28, 27, 31, 0.08);
+}
+
+.m3-icon-btn:active {
+  background: rgba(28, 27, 31, 0.12);
+}
+
+.m3-icon-btn.tonal {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+/* ---------- FAB ---------- */
+.m3-fab {
+  position: absolute;
+  bottom: 40px;          /* clear the nav pill */
+  right: 16px;
+  height: 56px;
+  min-width: 56px;
+  padding: 0 16px;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  box-shadow: var(--md-sys-elevation-3);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  transition: box-shadow var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+  z-index: 20;
+}
+
+.m3-fab:hover { box-shadow: var(--md-sys-elevation-4); }
+
+.m3-fab.primary {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.m3-fab.secondary {
+  background: var(--md-sys-color-secondary);
+  color: var(--md-sys-color-on-secondary);
+}
+
+.m3-fab .material-symbols-rounded {
+  font-size: 24px;
+}
+
+.m3-fab.small {
+  height: 40px;
+  min-width: 40px;
+  padding: 0 12px;
+  font-size: 12px;
+}
+
+/* ---------- Buttons ---------- */
+.m3-btn {
+  height: 40px;
+  padding: 0 24px;
+  border-radius: var(--md-sys-shape-corner-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  cursor: pointer;
+  transition: all var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+  border: none;
+}
+
+.m3-btn.filled {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.m3-btn.filled:hover { box-shadow: var(--md-sys-elevation-1); }
+
+.m3-btn.tonal {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+.m3-btn.outlined {
+  background: transparent;
+  color: var(--md-sys-color-primary);
+  border: 1px solid var(--md-sys-color-outline);
+}
+
+.m3-btn.text {
+  background: transparent;
+  color: var(--md-sys-color-primary);
+  padding: 0 12px;
+}
+
+/* ---------- Card ---------- */
+.m3-card {
+  background: var(--md-sys-color-surface-container-low);
+  border-radius: var(--md-sys-shape-corner-medium);
+  padding: 16px;
+}
+
+.m3-card.elevated {
+  background: var(--md-sys-color-surface-container-low);
+  box-shadow: var(--md-sys-elevation-1);
+}
+
+.m3-card.filled {
+  background: var(--md-sys-color-surface-container-highest);
+}
+
+.m3-card.outlined {
+  background: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+/* ---------- List Item ---------- */
+.m3-list {
+  background: var(--md-sys-color-surface);
+}
+
+.m3-list-item {
+  min-height: 56px;
+  padding: 8px 24px 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: background var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+
+.m3-list-item:hover {
+  background: rgba(28, 27, 31, 0.08);
+}
+
+.m3-list-item .leading {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.m3-list-item .leading.avatar {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  border-radius: 50%;
+}
+
+.m3-list-item .content {
+  flex: 1;
+  min-width: 0;
+}
+
+.m3-list-item .headline {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--md-sys-color-on-surface);
+  line-height: 24px;
+}
+
+.m3-list-item .supporting {
+  font-size: 14px;
+  color: var(--md-sys-color-on-surface-variant);
+  line-height: 20px;
+  margin-top: 2px;
+}
+
+.m3-list-item .trailing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 14px;
+}
+
+/* List Section Header */
+.m3-list-section {
+  padding: 16px 16px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--md-sys-color-primary);
+}
+
+/* Divider */
+.m3-divider {
+  height: 1px;
+  background: var(--md-sys-color-outline-variant);
+  margin: 0 16px;
+}
+
+/* ---------- Switch ---------- */
+.m3-switch {
+  width: 52px;
+  height: 32px;
+  border-radius: 16px;
+  background: var(--md-sys-color-surface-container-highest);
+  border: 2px solid var(--md-sys-color-outline);
+  position: relative;
+  cursor: pointer;
+  transition: all var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+  flex-shrink: 0;
+}
+
+.m3-switch::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--md-sys-color-outline);
+  transition: all var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+
+.m3-switch.on {
+  background: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-primary);
+}
+
+.m3-switch.on::after {
+  left: 26px;
+  width: 24px;
+  height: 24px;
+  background: var(--md-sys-color-on-primary);
+}
+
+/* ---------- Slider ---------- */
+.m3-slider {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+}
+
+.m3-slider-track {
+  flex: 1;
+  height: 16px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.m3-slider-track::before {
+  content: '';
+  position: absolute;
+  inset: auto 0;
+  height: 16px;
+  background: var(--md-sys-color-surface-container-highest);
+  border-radius: 8px;
+}
+
+.m3-slider-fill {
+  height: 16px;
+  background: var(--md-sys-color-primary);
+  border-radius: 8px 0 0 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.m3-slider-handle {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 44px;
+  background: var(--md-sys-color-primary);
+  border-radius: 2px;
+  z-index: 2;
+}
+
+/* ---------- Chip ---------- */
+.m3-chip {
+  height: 32px;
+  padding: 0 16px;
+  border-radius: var(--md-sys-shape-corner-small);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  cursor: pointer;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface-variant);
+  border: 1px solid var(--md-sys-color-outline);
+  transition: all var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+
+.m3-chip.selected {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  border-color: transparent;
+}
+
+.m3-chip.suggestion {
+  background: var(--md-sys-color-surface);
+  border-color: var(--md-sys-color-outline-variant);
+}
+
+.m3-chip .material-symbols-rounded {
+  font-size: 18px;
+}
+
+/* ---------- Segmented Button ---------- */
+.m3-segmented {
+  display: inline-flex;
+  border-radius: var(--md-sys-shape-corner-full);
+  border: 1px solid var(--md-sys-color-outline);
+  overflow: hidden;
+  height: 40px;
+}
+
+.m3-segmented .segment {
+  flex: 1;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  color: var(--md-sys-color-on-surface);
+  background: transparent;
+  cursor: pointer;
+  border-right: 1px solid var(--md-sys-color-outline);
+  transition: all var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+  white-space: nowrap;
+}
+
+.m3-segmented .segment:last-child { border-right: none; }
+
+.m3-segmented .segment.selected {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+.m3-segmented .segment .material-symbols-rounded {
+  font-size: 18px;
+}
+
+/* ---------- Progress Indicator (linear) ---------- */
+.m3-progress {
+  width: 100%;
+  height: 4px;
+  background: var(--md-sys-color-surface-container-highest);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.m3-progress-fill {
+  height: 100%;
+  background: var(--md-sys-color-primary);
+  border-radius: 2px;
+  transition: width var(--md-sys-motion-duration-medium) var(--md-sys-motion-easing-standard);
+}
+
+/* Circular */
+.m3-progress-circular {
+  width: 48px;
+  height: 48px;
+  position: relative;
+}
+
+/* ---------- Bottom navigation ---------- */
+.m3-bottom-nav {
+  height: 80px;
+  background: var(--md-sys-color-surface-container);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 12px 8px;
+  flex-shrink: 0;
+}
+
+.m3-bottom-nav .nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.m3-bottom-nav .nav-item.selected {
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+.m3-bottom-nav .nav-item .nav-icon-wrap {
+  width: 64px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  transition: background var(--md-sys-motion-duration-short) var(--md-sys-motion-easing-standard);
+}
+
+.m3-bottom-nav .nav-item.selected .nav-icon-wrap {
+  background: var(--md-sys-color-secondary-container);
+}
+
+/* ---------- Snackbar ---------- */
+.m3-snackbar {
+  position: absolute;
+  bottom: 100px;
+  left: 16px;
+  right: 16px;
+  background: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 14px;
+  box-shadow: var(--md-sys-elevation-3);
+  z-index: 30;
+}
+
+.m3-snackbar .action {
+  color: var(--md-sys-color-inverse-primary);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* ---------- Badge ---------- */
+.m3-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: var(--md-sys-color-error);
+  color: var(--md-sys-color-on-error);
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================
+   Utility
+   ============================================ */
+.flex { display: flex; }
+.flex-col { display: flex; flex-direction: column; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.gap-4 { gap: 16px; }
+.mt-1 { margin-top: 4px; }
+.mt-2 { margin-top: 8px; }
+.mt-3 { margin-top: 12px; }
+.mt-4 { margin-top: 16px; }
+.mt-6 { margin-top: 24px; }
+.mt-8 { margin-top: 32px; }
+.mb-2 { margin-bottom: 8px; }
+.mb-4 { margin-bottom: 16px; }
+.p-4 { padding: 16px; }
+.p-6 { padding: 24px; }
+.px-4 { padding-left: 16px; padding-right: 16px; }
+.px-6 { padding-left: 24px; padding-right: 24px; }
+.text-center { text-align: center; }
+.w-full { width: 100%; }
+.h-full { height: 100%; }

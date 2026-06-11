@@ -1,0 +1,297 @@
+/* ===== M3 design tokens ===== */
+:root {
+  --md-primary: #4F46E5;          /* Indigo */
+  --md-on-primary: #FFFFFF;
+  --md-primary-container: #E0E7FF;
+  --md-on-primary-container: #1E1B4B;
+  --md-secondary: #F97316;        /* Orange */
+  --md-on-secondary: #FFFFFF;
+  --md-surface: #FFFBFE;
+  --md-on-surface: #1C1B1F;
+  --md-surface-variant: #E7E0EC;
+  --md-on-surface-variant: #49454F;
+  --md-outline: #79747E;
+  --md-outline-variant: #CAC4D0;
+
+  --backdrop: #ECEEF2;
+  --device-bezel: #1C1B1F;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: "Roboto Flex", system-ui, -apple-system, sans-serif;
+  color: var(--md-on-surface);
+  background: var(--backdrop);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Stage ===== */
+.stage {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px 24px;
+  gap: 18px;
+}
+
+/* ===== Pixel 7 device frame ===== */
+.device {
+  width: 412px;
+  height: 915px;
+  background: var(--device-bezel);
+  border-radius: 56px;
+  padding: 12px;
+  box-shadow: var(--shadow-2);
+  flex-shrink: 0;
+}
+
+.screen {
+  width: 100%;
+  height: 100%;
+  background: var(--md-surface);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Status bar ===== */
+.status-bar {
+  height: 32px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--md-on-surface);
+  flex-shrink: 0;
+}
+.status-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--md-on-surface);
+}
+
+/* ===== Content ===== */
+.content {
+  flex: 1;
+  padding: 24px 28px 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  overflow: hidden;
+}
+
+.app-title {
+  margin: 8px 0 4px;
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: var(--md-on-surface);
+}
+
+/* ===== Analog clock ===== */
+.clock-wrap {
+  width: 240px;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.clock {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.face-bg {
+  fill: var(--md-primary-container);
+}
+.face-ring {
+  fill: none;
+  stroke: var(--md-primary);
+  stroke-width: 2;
+  opacity: 0.4;
+}
+.ticks line {
+  stroke: var(--md-on-primary-container);
+}
+.ticks line.tick-major {
+  stroke-width: 2.2;
+  opacity: 0.85;
+}
+.ticks line.tick-minor {
+  stroke-width: 1;
+  opacity: 0.35;
+}
+.numbers text {
+  fill: var(--md-on-primary-container);
+  font-family: "Roboto Flex", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.hand {
+  stroke-linecap: round;
+  transform-origin: 100px 100px;
+}
+.hand-hour {
+  stroke: var(--md-primary);
+  stroke-width: 6;
+}
+.hand-minute {
+  stroke: var(--md-on-primary-container);
+  stroke-width: 4;
+  opacity: 0.85;
+}
+.hand-second {
+  stroke: var(--md-secondary);
+  stroke-width: 2;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pin-outer {
+  fill: var(--md-primary);
+}
+.pin-inner {
+  fill: var(--md-secondary);
+}
+
+/* ===== Digital clock ===== */
+.digital {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.digital-time {
+  font-size: 64px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -2px;
+  color: var(--md-on-surface);
+  font-variant-numeric: tabular-nums;
+}
+.digital-period {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--md-on-surface-variant);
+  letter-spacing: 0.5px;
+  min-height: 20px;
+}
+
+/* ===== M3 Segmented buttons ===== */
+.segmented {
+  display: inline-flex;
+  width: 100%;
+  max-width: 320px;
+  height: 44px;
+  border-radius: 22px;
+  border: 1px solid var(--md-outline);
+  overflow: hidden;
+  background: var(--md-surface);
+}
+.segment {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--md-on-surface);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  transition: background-color 0.18s ease, color 0.18s ease;
+  position: relative;
+}
+.segment + .segment {
+  border-left: 1px solid var(--md-outline);
+}
+.segment:hover {
+  background: rgba(79, 70, 229, 0.06);
+}
+.segment .check {
+  display: inline-flex;
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: width 0.18s ease, opacity 0.18s ease;
+  color: var(--md-on-primary-container);
+}
+.segment.selected {
+  background: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+}
+.segment.selected .check {
+  width: 18px;
+  opacity: 1;
+}
+
+/* ===== Gesture pill ===== */
+.gesture-pill {
+  width: 108px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--md-on-surface);
+  opacity: 0.85;
+  margin: 0 auto 10px;
+  flex-shrink: 0;
+}
+
+/* ===== Caption & footer ===== */
+.caption {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--md-on-surface-variant);
+  text-align: center;
+}
+.footer {
+  font-size: 12px;
+  color: var(--md-on-surface-variant);
+  text-align: center;
+}
+.footer a {
+  color: var(--md-primary);
+  text-decoration: none;
+}
+.footer a:hover { text-decoration: underline; }
+
+/* ===== Responsive: fill screen on mobile ===== */
+@media (max-width: 460px) {
+  .stage {
+    padding: 0;
+    gap: 0;
+    background: var(--md-surface);
+  }
+  .device {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    padding: 0;
+    background: var(--md-surface);
+    box-shadow: none;
+  }
+  .screen {
+    border-radius: 0;
+  }
+  .caption, .footer { display: none; }
+}

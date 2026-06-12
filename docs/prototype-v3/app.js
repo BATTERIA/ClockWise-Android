@@ -181,18 +181,18 @@
     if (!clockRegion || !screen) return;
 
     if (!isPortrait) {
-      clockRegion.style.transform = '';
+      clockRegion.style.marginTop = '';
       return;
     }
     // After natural layout, measure where clock center currently is relative to screen top.
-    clockRegion.style.transform = '';
+    clockRegion.style.marginTop = '';
     const sRect = screen.getBoundingClientRect();
     const cRect = clockRegion.getBoundingClientRect();
     const currentCenter = (cRect.top + cRect.height / 2) - sRect.top;
     const targetCenter = sRect.height * PHI;
     const delta = targetCenter - currentCenter;
     if (Math.abs(delta) > 1) {
-      clockRegion.style.transform = `translateY(${delta.toFixed(1)}px)`;
+      clockRegion.style.marginTop = `${delta.toFixed(1)}px`;
     }
   }
 

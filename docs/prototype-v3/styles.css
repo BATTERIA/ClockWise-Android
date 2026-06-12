@@ -1,0 +1,449 @@
+/* ============================================================
+   ClockWise v3 — Bluey palette, cream bg, golden-ratio layout
+   ============================================================ */
+
+:root {
+  /* --- Backgrounds (cream, eye-friendly) --- */
+  --cw-bg:           #FFF8E7;   /* warm cream */
+  --cw-bg-elevated:  #FFFDF5;   /* lighter cream for cards */
+  --cw-bg-deep:      #F5E8C8;   /* warm tan for depth */
+
+  /* --- Bluey blues (heeler family) --- */
+  --cw-bluey:        #4FB3FF;   /* Bluey’s bright blue */
+  --cw-bluey-deep:   #1E78D9;   /* deeper blue accent */
+  --cw-bluey-soft:   #B3E0FF;   /* powder blue */
+
+  /* --- Bingo orange --- */
+  --cw-bingo:        #FF9542;
+  --cw-bingo-soft:   #FFD4A8;
+
+  /* --- Bandit royal blue + Chilli red --- */
+  --cw-bandit:       #2563EB;
+  --cw-chilli:       #E74C3C;
+
+  /* --- Cartoon accents --- */
+  --cw-mint:         #4ED8A0;
+  --cw-sun:          #FFDA6E;
+  --cw-rose:         #FF8FBE;
+
+  /* --- Text / lines --- */
+  --cw-ink:          #1E3A52;   /* warm navy, not black */
+  --cw-ink-soft:     #4A6B8A;
+  --cw-outline:      #C8B89A;   /* warm beige */
+
+  /* --- Stage / device --- */
+  --backdrop:        #EBE3D2;
+  --device-bezel:    #1E3A52;
+  --shadow-soft:     0 4px 14px rgba(30, 58, 82, 0.10), 0 1px 3px rgba(30, 58, 82, 0.08);
+  --shadow-elev:     0 20px 50px rgba(30, 58, 82, 0.22), 0 4px 12px rgba(30, 58, 82, 0.10);
+
+  /* Default = Pixel 7 portrait */
+  --device-w: 412px;
+  --device-h: 915px;
+  --device-radius: 56px;
+  --screen-radius: 44px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: "Nunito", "Fredoka", system-ui, -apple-system, sans-serif;
+  color: var(--cw-ink);
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #FCEFCF 0%, transparent 60%),
+    var(--backdrop);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Stage ===== */
+.stage {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px 16px;
+  gap: 14px;
+}
+
+/* ===== Device frame ===== */
+.device {
+  width: var(--device-w);
+  height: var(--device-h);
+  background: var(--device-bezel);
+  border-radius: var(--device-radius);
+  padding: 12px;
+  box-shadow: var(--shadow-elev);
+  flex-shrink: 0;
+  transition: width 0.35s ease, height 0.35s ease, border-radius 0.35s ease;
+}
+
+.screen {
+  width: 100%;
+  height: 100%;
+  background: var(--cw-bg);
+  border-radius: var(--screen-radius);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Device variants */
+.device.phone-portrait    { --device-w: 412px;  --device-h: 915px; --device-radius: 56px; --screen-radius: 44px; }
+.device.phone-landscape   { --device-w: 915px;  --device-h: 412px; --device-radius: 56px; --screen-radius: 44px; }
+.device.tablet-portrait   { --device-w: 600px;  --device-h: 900px; --device-radius: 38px; --screen-radius: 26px; }
+.device.tablet-landscape  { --device-w: 980px;  --device-h: 700px; --device-radius: 38px; --screen-radius: 26px; }
+
+/* ===== Status bar ===== */
+.status-bar {
+  height: 30px;
+  padding: 0 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cw-ink);
+  flex-shrink: 0;
+}
+.status-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--cw-ink);
+}
+
+/* ===== Content (portrait default) ===== */
+.content {
+  flex: 1;
+  position: relative;
+  padding: 16px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  gap: 12px;
+}
+
+/* portrait golden-ratio: clock center at ~38.2% of screen height.
+   Within content (after status bar ~30px + gesture pill ~28px), we use flex with
+   distributed empty space + a translated clock to land its center at 38.2%. */
+.clock-region {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+.info-region {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+/* default portrait flex order: clock first (with top spacer), then info */
+.content::before {
+  content: "";
+  flex: 0 0 8%;   /* small breathing space at top */
+}
+.content::after {
+  content: "";
+  flex: 1 1 auto; /* push info up just a bit */
+}
+
+/* ===== Analog clock ===== */
+.clock-wrap {
+  width: 78%;
+  max-width: 320px;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 8px 16px rgba(30, 58, 82, 0.12));
+}
+.clock {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.face-shadow {
+  fill: rgba(30, 58, 82, 0.06);
+  filter: blur(2px);
+}
+.face-bg {
+  fill: var(--cw-bg-elevated);
+}
+.face-ring {
+  fill: none;
+  stroke: var(--cw-outline);
+  stroke-width: 3;
+}
+
+/* tick marks */
+.ticks line {
+  stroke: var(--cw-outline);
+}
+.ticks line.tick-major {
+  stroke-width: 3;
+  stroke: var(--cw-bluey-deep);
+  opacity: 0.7;
+  stroke-linecap: round;
+}
+.ticks line.tick-minor {
+  stroke-width: 1.4;
+  opacity: 0.45;
+  stroke-linecap: round;
+}
+
+/* numbers 1-12 */
+.numbers text {
+  fill: var(--cw-ink);
+  font-family: "Fredoka", "Nunito", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* hands */
+.hand {
+  stroke-linecap: round;
+  transform-origin: 110px 110px;
+}
+.hand-hour {
+  stroke: var(--cw-bandit);
+  stroke-width: 7;
+}
+.hand-minute {
+  stroke: var(--cw-bluey);
+  stroke-width: 5;
+}
+.hand-second {
+  stroke: var(--cw-chilli);
+  stroke-width: 2.2;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pin-outer { fill: var(--cw-bandit); }
+.pin-inner { fill: var(--cw-chilli); }
+
+/* ===== Digital clock card (M3 outlined) ===== */
+.digital-card {
+  background: var(--cw-bg-elevated);
+  border: 2px solid var(--cw-outline);
+  border-radius: 20px;
+  padding: 18px 28px 14px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 220px;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s ease;
+}
+.digital-card:hover { transform: translateY(-1px); }
+
+.digital-time {
+  font-family: "Roboto Mono", "Fredoka", monospace;
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -1px;
+  color: var(--cw-ink);
+  font-variant-numeric: tabular-nums;
+}
+.digital-period {
+  font-family: "Nunito", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cw-bluey-deep);
+  letter-spacing: 1.5px;
+  min-height: 18px;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+/* ===== Segmented buttons (M3) ===== */
+.segmented {
+  display: inline-flex;
+  width: 100%;
+  max-width: 240px;
+  height: 40px;
+  border-radius: 20px;
+  border: 1.5px solid var(--cw-outline);
+  overflow: hidden;
+  background: var(--cw-bg-elevated);
+}
+.segment {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--cw-ink-soft);
+  font-family: "Nunito", inherit;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 12px;
+  transition: background-color 0.18s ease, color 0.18s ease;
+  position: relative;
+}
+.segment + .segment {
+  border-left: 1.5px solid var(--cw-outline);
+}
+.segment:hover {
+  background: rgba(79, 179, 255, 0.10);
+}
+.segment .check {
+  display: inline-flex;
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: width 0.22s ease, opacity 0.22s ease;
+  color: var(--cw-bluey-deep);
+}
+.segment.selected {
+  background: var(--cw-bluey-soft);
+  color: var(--cw-bluey-deep);
+}
+.segment.selected .check {
+  width: 18px;
+  opacity: 1;
+}
+
+/* ===== Gesture pill ===== */
+.gesture-pill {
+  width: 108px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--cw-ink);
+  opacity: 0.55;
+  margin: 0 auto 10px;
+  flex-shrink: 0;
+}
+
+/* ===== Caption, device picker, footer ===== */
+.caption {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cw-ink-soft);
+  text-align: center;
+}
+.device-picker {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  background: var(--cw-bg-elevated);
+  border: 1.5px solid var(--cw-outline);
+  border-radius: 18px;
+  padding: 4px;
+}
+.dp-btn {
+  font-family: "Nunito", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cw-ink-soft);
+  background: transparent;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+.dp-btn:hover { background: rgba(79, 179, 255, 0.10); }
+.dp-btn.selected {
+  background: var(--cw-bluey);
+  color: white;
+}
+.footer {
+  font-size: 11px;
+  color: var(--cw-ink-soft);
+  text-align: center;
+}
+.footer a {
+  color: var(--cw-bluey-deep);
+  text-decoration: none;
+  font-weight: 700;
+}
+.footer a:hover { text-decoration: underline; }
+
+/* ============================================================
+   LAYOUT VARIANTS
+   ============================================================ */
+
+/* --- Landscape phone OR Landscape tablet OR Tablet portrait wide:
+       side-by-side clock + info --- */
+.device.phone-landscape .content,
+.device.tablet-landscape .content {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  padding: 12px 36px;
+}
+.device.phone-landscape .content::before,
+.device.phone-landscape .content::after,
+.device.tablet-landscape .content::before,
+.device.tablet-landscape .content::after {
+  content: none;
+}
+.device.phone-landscape .clock-region,
+.device.tablet-landscape .clock-region {
+  flex: 1.1;
+  height: 100%;
+}
+.device.phone-landscape .info-region,
+.device.tablet-landscape .info-region {
+  flex: 1;
+  align-items: stretch;
+  gap: 16px;
+  max-width: 320px;
+}
+.device.phone-landscape .clock-wrap,
+.device.tablet-landscape .clock-wrap {
+  width: 92%;
+  max-width: 360px;
+}
+
+/* tablet landscape — bigger clock + bigger digital */
+.device.tablet-landscape .clock-wrap { max-width: 460px; }
+.device.tablet-landscape .digital-time { font-size: 80px; }
+.device.tablet-landscape .digital-card { padding: 28px 40px 22px; min-width: 280px; }
+.device.tablet-landscape .segmented { max-width: 300px; height: 48px; border-radius: 24px; }
+
+/* phone landscape — tighter spacing */
+.device.phone-landscape .digital-time { font-size: 48px; }
+.device.phone-landscape .digital-card { padding: 14px 24px 10px; min-width: 180px; }
+
+/* --- Tablet portrait: portrait flow but bigger clock + bigger digital --- */
+.device.tablet-portrait .content {
+  gap: 22px;
+  padding: 28px 48px 40px;
+}
+.device.tablet-portrait .clock-wrap { max-width: 460px; width: 82%; }
+.device.tablet-portrait .digital-time { font-size: 80px; }
+.device.tablet-portrait .digital-card { padding: 26px 40px 20px; min-width: 280px; }
+.device.tablet-portrait .segmented { max-width: 300px; height: 48px; border-radius: 24px; }
+
+/* ============================================================
+   RESPONSIVE: when viewport is small, scale device down a bit
+   ============================================================ */
+@media (max-width: 520px) {
+  .stage { padding: 0; gap: 0; background: var(--cw-bg); }
+  .device.phone-portrait { width: 100vw; height: 100dvh; border-radius: 0; padding: 0; box-shadow: none; }
+  .device.phone-portrait .screen { border-radius: 0; }
+  .device.phone-landscape, .device.tablet-portrait, .device.tablet-landscape { display: none; }
+  .caption, .device-picker, .footer { display: none; }
+}

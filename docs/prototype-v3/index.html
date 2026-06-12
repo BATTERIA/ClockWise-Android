@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClockWise · v3 — Bluey</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@500;700;800&family=Roboto+Mono:wght@500;700&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="stage">
+    <!-- Device frame (adapts: phone-portrait / phone-landscape / tablet-portrait / tablet-landscape) -->
+    <div class="device" role="img" aria-label="ClockWise v3 Bluey-themed clock prototype">
+      <div class="screen">
+        <!-- Status bar -->
+        <div class="status-bar" aria-hidden="true">
+          <span class="status-time">9:41</span>
+          <span class="status-icons">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2 22h20V2L2 22z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C7 3 2.7 5 0 8l12 14L24 8c-2.7-3-7-5-12-5z"/></svg>
+            <svg width="22" height="12" viewBox="0 0 26 12" fill="none" stroke="currentColor" stroke-width="1.4">
+              <rect x="0.6" y="0.6" width="22" height="10.8" rx="2.4"/>
+              <rect x="2.6" y="2.6" width="18" height="6.8" rx="1" fill="currentColor"/>
+              <rect x="23.4" y="4" width="1.8" height="4" rx="0.8" fill="currentColor" stroke="none"/>
+            </svg>
+          </span>
+        </div>
+
+        <!-- App content (layout flips for landscape/tablet via CSS) -->
+        <div class="content">
+          <!-- LEFT / TOP: analog clock -->
+          <section class="clock-region">
+            <div class="clock-wrap">
+              <svg class="clock" viewBox="0 0 220 220" role="img" aria-label="Analog clock">
+                <!-- Soft shadow / elevation halo -->
+                <circle cx="110" cy="114" r="100" class="face-shadow" />
+                <!-- Face -->
+                <circle cx="110" cy="110" r="100" class="face-bg" />
+                <circle cx="110" cy="110" r="100" class="face-ring" />
+
+                <!-- Tick marks -->
+                <g class="ticks" id="ticks"></g>
+                <!-- Numbers 1-12 -->
+                <g class="numbers" id="numbers"></g>
+
+                <!-- Hands -->
+                <line id="hourHand"   class="hand hand-hour"   x1="110" y1="110" x2="110" y2="60" />
+                <line id="minuteHand" class="hand hand-minute" x1="110" y1="110" x2="110" y2="40" />
+                <line id="secondHand" class="hand hand-second" x1="110" y1="110" x2="110" y2="30" />
+
+                <!-- Center pin (bandit blue ring + chilli red dot) -->
+                <circle cx="110" cy="110" r="7.5" class="pin-outer" />
+                <circle cx="110" cy="110" r="3.6" class="pin-inner" />
+              </svg>
+            </div>
+          </section>
+
+          <!-- RIGHT / BOTTOM: digital + controls -->
+          <section class="info-region">
+            <!-- Digital clock with M3 outlined card -->
+            <div class="digital-card" id="digitalCard">
+              <div class="digital-time" id="digitalTime">06:30</div>
+              <div class="digital-period" id="digitalPeriod">AM</div>
+            </div>
+
+            <!-- 12h / 24h segmented buttons -->
+            <div class="segmented" role="group" aria-label="Time format">
+              <button class="segment" data-group="format" data-value="12" id="seg12">
+                <span class="check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                <span class="label">12h</span>
+              </button>
+              <button class="segment" data-group="format" data-value="24" id="seg24">
+                <span class="check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                <span class="label">24h</span>
+              </button>
+            </div>
+
+            <!-- Language segmented buttons -->
+            <div class="segmented" role="group" aria-label="Language">
+              <button class="segment" data-group="lang" data-value="zh" id="segZh">
+                <span class="check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                <span class="label">中</span>
+              </button>
+              <button class="segment" data-group="lang" data-value="en" id="segEn">
+                <span class="check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                <span class="label">EN</span>
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <!-- Gesture pill -->
+        <div class="gesture-pill" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <p class="caption" id="caption">Bluey-themed · golden-ratio layout · multi-orientation</p>
+    <div class="device-picker" role="group" aria-label="Device preview">
+      <button class="dp-btn selected" data-device="phone-portrait">📱 Phone</button>
+      <button class="dp-btn" data-device="phone-landscape">📱 Phone ⟲</button>
+      <button class="dp-btn" data-device="tablet-portrait">📲 Tablet</button>
+      <button class="dp-btn" data-device="tablet-landscape">📲 Tablet ⟲</button>
+    </div>
+    <footer class="footer">
+      <a href="https://github.com/batteria/ClockWise-Android" target="_blank" rel="noopener">ClockWise · prototype-v3</a>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

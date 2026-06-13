@@ -672,39 +672,20 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
     }
 
     OutlinedCard(
-        // v3.5: card has a fixed width per seconds-mode, animating between them
-        // so toggling Show s / Hide s glides smoothly instead of snapping.
-        // v3.6: bouncy spring with a medium overshoot for kid-friendly delight.
-        // Tablet (big=true) uses 80sp digits → needs noticeably wider widths.
-        // v3.6: Fredoka is a bit wider than the prior sans-serif, so widths nudged up.
-        // v3.6.1: previous bumps weren't enough — Fredoka tabular at 56sp/80sp
-        // is wider than estimated. Re-measured with breathing room so PM never
-        // pushes the readout into a wrap.
-        // v3.6.2: empirical re-measurement — Fredoka 700 "12:34:56 PM" at 56sp
-        // actually renders ~318dp wide; the v3.6.1 widths were still too tight
-        // (text was overflowing left and looking left-aligned). Phone digits
-        // dropped slightly (56→52) to keep the card from blowing past the
-        // device frame, and widths bumped to genuinely fit the readout.
-        modifier = Modifier.padding(horizontal = 4.dp).width(
-            animateDpAsState(
-                targetValue = when {
-                    big && state.showSeconds  -> 520.dp
-                    big && !state.showSeconds -> 420.dp
-                    !big && state.showSeconds -> 320.dp
-                    else                      -> 260.dp
-                },
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMediumLow,
-                ),
-                label = "digitalCardWidth",
-            ).value
-        ),
+        // v3.6.3: drop the fixed-width approach entirely. The card now wraps its
+        // content, padding kept small, and the existing animateContentSize on
+        // the inner Column gives a smooth (bouncy) width transition when
+        // toggling Show s / Hide s. Text centers naturally inside a wrap-content
+        // Card — no fillMaxWidth or manual textAlign needed.
+        modifier = Modifier.padding(horizontal = 4.dp),
     ) {
         Column(
             modifier = Modifier
                 .padding(
-                    horizontal = if (big) 40.dp else 28.dp,
+                    // v3.6.3: tighter horizontal padding so the wrap-content card
+                    // doesn't grow huge around long readouts. Kid-friendly chunky
+                    // but not bloated.
+                    horizontal = if (big) 24.dp else 18.dp,
                     vertical = if (big) 22.dp else 16.dp,
                 )
                 // v3.6: bouncy spring on the card's interior height so the AM/PM
@@ -719,9 +700,10 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
         ) {
             Text(
                 text = timeText,
-                // v3.6.2: shrink phone digits from 56→52 so the readout fits
-                // the card without overflow; tablet stays at 80 (room to spare).
-                fontSize = if (big) 80.sp else 52.sp,
+                // v3.6.3: with a wrap-content card we can go back to the full
+                // 56sp on phone and 80sp on tablet — no risk of overflow since
+                // the card grows to match the text.
+                fontSize = if (big) 80.sp else 56.sp,
                 fontWeight = FontWeight.Bold,
                 color = BlueyPalette.Ink,
                 // v3.6.1: drop letter-spacing — Fredoka is already chunky and the
@@ -731,11 +713,9 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
                 // v3.6.1: belt-and-suspenders — the readout must NEVER wrap.
                 maxLines = 1,
                 softWrap = false,
-                // v3.6.2: explicit center alignment. With softWrap=false the Text
-                // was hugging the start edge inside the centered Column — force
-                // the text itself to center within a full-width frame.
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
+                // v3.6.3: no fillMaxWidth / textAlign needed — a wrap-content
+                // Card sized to text + the parent Column's CenterHorizontally
+                // already centers the readout naturally.
             )
             // AM/PM uses expandVertically/shrinkVertically so that BOTH the fade
             // AND the vertical layout collapse are animated. Without these the

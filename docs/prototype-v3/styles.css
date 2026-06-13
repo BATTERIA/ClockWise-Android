@@ -226,7 +226,16 @@ html, body {
 .hand-second {
   stroke: var(--cw-chilli);
   stroke-width: 2.2;
-  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* No transition: angle is updated every animation frame from JS,
+     so the hand sweeps continuously instead of animating between
+     discrete states (which is what caused the visible "jump"). */
+}
+
+/* Hour and minute hands also already receive fractional angles every
+   frame, but a tiny transition smooths sub-pixel jitter on some GPUs. */
+.hand-hour,
+.hand-minute {
+  transition: none;
 }
 
 .pin-outer { fill: var(--cw-bandit); }
@@ -319,6 +328,84 @@ html, body {
 .segment.selected .check {
   width: 18px;
   opacity: 1;
+}
+
+/* ===== M3 Switch (binary toggle, e.g. show-seconds) =====
+   Track 52x32 with outline when off, filled when on.
+   Thumb sizes: 16px (off) / 24px (on) with a small spring-y motion. */
+.switch-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  max-width: 240px;
+  padding: 4px 4px;
+}
+.switch-label {
+  font-family: "Nunito", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cw-ink);
+  letter-spacing: 0.1px;
+  user-select: none;
+}
+.m3-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 52px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: inline-block;
+  outline: none;
+}
+.m3-switch:focus-visible {
+  box-shadow: 0 0 0 3px rgba(79, 179, 255, 0.45);
+  border-radius: 16px;
+}
+.m3-switch-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: var(--cw-bg-elevated);
+  border: 2px solid var(--cw-outline);
+  transition: background-color 0.22s ease, border-color 0.22s ease;
+}
+.m3-switch-thumb {
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  width: 16px;
+  height: 16px;
+  margin-top: -8px;
+  border-radius: 50%;
+  background: var(--cw-ink-soft);
+  transition:
+    left 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+    width 0.18s ease,
+    height 0.18s ease,
+    margin 0.18s ease,
+    background-color 0.22s ease,
+    transform 0.12s ease;
+}
+.m3-switch:active .m3-switch-thumb {
+  transform: scale(0.92);
+}
+.m3-switch.on .m3-switch-track {
+  background: var(--cw-bluey);
+  border-color: var(--cw-bluey-deep);
+}
+.m3-switch.on .m3-switch-thumb {
+  /* Thumb grows to 24px and slides right. left = 52 - 24 - 4 = 24 */
+  left: 24px;
+  width: 24px;
+  height: 24px;
+  margin-top: -12px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(30, 58, 82, 0.25);
 }
 
 /* ===== Gesture pill ===== */
@@ -426,6 +513,13 @@ html, body {
 /* phone landscape — tighter spacing */
 .device.phone-landscape .digital-time { font-size: 48px; }
 .device.phone-landscape .digital-card { padding: 14px 24px 10px; min-width: 180px; }
+
+/* In landscape, the info-region uses align-items: stretch so segmented buttons
+   span the column. Switch row should self-center to avoid awkward stretching. */
+.device.phone-landscape .switch-row,
+.device.tablet-landscape .switch-row {
+  align-self: center;
+}
 
 /* --- Tablet portrait: portrait flow but bigger clock + bigger digital --- */
 .device.tablet-portrait .content {

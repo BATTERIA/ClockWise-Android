@@ -27,4 +27,8 @@ class ClockViewModel @Inject constructor(
     fun setLanguage(lang: Language) = viewModelScope.launch {
         repo.setLanguage(lang)
     }
+
+    fun setShowSeconds(show: Boolean) = viewModelScope.launch {
+        repo.setShowSeconds(show)
+    }
 }

@@ -1,0 +1,18 @@
+# Gradle / build
+.gradle/
+build/
+app/build/
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# Local config
+local.properties
+
+# Generated drawable/mipmap stub assets from initial build (keep checked-in icons only)
+# (we want to keep checked-in launcher icons if added intentionally)
+
+# OS
+Thumbs.db

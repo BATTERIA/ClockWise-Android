@@ -3,8 +3,18 @@
 
   // ---- i18n ----
   const STR = {
-    en: { am: 'AM', pm: 'PM', caption: 'Bluey-themed · golden-ratio layout · multi-orientation' },
-    zh: { am: '上午', pm: '下午', caption: 'Bluey 配色 · 黄金比例布局 · 多方向适配' },
+    en: {
+      am: 'AM',
+      pm: 'PM',
+      caption: 'Bluey-themed · golden-ratio layout · multi-orientation',
+      showSeconds: 'Show seconds',
+    },
+    zh: {
+      am: '上午',
+      pm: '下午',
+      caption: 'Bluey 配色 · 黄金比例布局 · 多方向适配',
+      showSeconds: '显示秒数',
+    },
   };
 
   // ---- State (persisted) ----
@@ -12,6 +22,8 @@
     format: localStorage.getItem('cw.format') || '12',          // '12' | '24'
     lang:   localStorage.getItem('cw.lang')   || 'en',          // 'en' | 'zh'
     device: localStorage.getItem('cw.device') || 'phone-portrait',
+    // Default OFF (cleaner look initially)
+    showSeconds: localStorage.getItem('cw.showSeconds') === '1',
   };
 
   // ---- DOM ----
@@ -28,6 +40,9 @@
     segments:      document.querySelectorAll('.segment'),
     devicePicker:  document.querySelectorAll('.dp-btn'),
     caption:       document.getElementById('caption'),
+    // Switch row(s) for show-seconds (rendered once, queried after wire)
+    showSecondsSwitch: null,
+    showSecondsLabel:  null,
   };
 
   // ---- Clock face geometry (viewBox 220x220, center 110,110) ----
@@ -80,6 +95,7 @@
     const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
     const ms = now.getMilliseconds();
 
+    // Fractional seconds give continuous sweep — no per-second jump.
     const secondAngle = (s + ms / 1000) * 6;
     const minuteAngle = (m + s / 60) * 6;
     const hourAngle = ((h % 12) + m / 60) * 30;
@@ -88,6 +104,7 @@
     el.minute.style.transform = `rotate(${minuteAngle}deg)`;
     el.second.style.transform = `rotate(${secondAngle}deg)`;
 
+    // Only redraw digital text once per second (cheap, avoids text-node thrash).
     if (s !== lastSecond) {
       lastSecond = s;
       renderDigital(h, m, s);
@@ -95,26 +112,38 @@
     requestAnimationFrame(tick);
   }
 
-  function renderDigital(h, m /*, s */) {
-    const pad = (n) => String(n).padStart(2, '0');
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function renderDigital(h, m, s) {
+    const showS = state.showSeconds;
     if (state.format === '24') {
       // 24h: always padded, no period
-      el.digitalTime.textContent = `${pad(h)}:${pad(m)}`;
+      el.digitalTime.textContent = showS
+        ? `${pad(h)}:${pad(m)}:${pad(s)}`
+        : `${pad(h)}:${pad(m)}`;
       el.digitalPeriod.textContent = '';
     } else {
       const isPm = h >= 12;
       const h12 = h % 12 === 0 ? 12 : h % 12;
-      // Pad to 2 digits in 12h too: e.g. 06:30
-      el.digitalTime.textContent = `${pad(h12)}:${pad(m)}`;
+      el.digitalTime.textContent = showS
+        ? `${pad(h12)}:${pad(m)}:${pad(s)}`
+        : `${pad(h12)}:${pad(m)}`;
       el.digitalPeriod.textContent = isPm ? STR[state.lang].pm : STR[state.lang].am;
     }
+  }
+
+  function rerenderDigitalNow() {
+    const now = new Date();
+    // Force the once-per-second guard to refire so the new state takes effect immediately.
+    lastSecond = -1;
+    renderDigital(now.getHours(), now.getMinutes(), now.getSeconds());
   }
 
   // ---- Language ----
   function applyLang() {
     if (el.caption) el.caption.textContent = STR[state.lang].caption;
-    const now = new Date();
-    renderDigital(now.getHours(), now.getMinutes(), now.getSeconds());
+    if (el.showSecondsLabel) el.showSecondsLabel.textContent = STR[state.lang].showSeconds;
+    rerenderDigitalNow();
   }
 
   // ---- Segmented buttons ----
@@ -138,11 +167,34 @@
         localStorage.setItem(`cw.${group}`, value);
         refreshSegments();
         if (group === 'lang') applyLang();
-        if (group === 'format') {
-          const now = new Date();
-          renderDigital(now.getHours(), now.getMinutes(), now.getSeconds());
-        }
+        if (group === 'format') rerenderDigitalNow();
       });
+    });
+  }
+
+  // ---- M3 Switch (show-seconds) ----
+  function refreshSwitch() {
+    if (!el.showSecondsSwitch) return;
+    el.showSecondsSwitch.classList.toggle('on', state.showSeconds);
+    el.showSecondsSwitch.setAttribute('aria-checked', state.showSeconds ? 'true' : 'false');
+  }
+  function wireSwitch() {
+    el.showSecondsSwitch = document.getElementById('switchShowSeconds');
+    el.showSecondsLabel  = document.getElementById('switchShowSecondsLabel');
+    if (!el.showSecondsSwitch) return;
+
+    const toggle = () => {
+      state.showSeconds = !state.showSeconds;
+      localStorage.setItem('cw.showSeconds', state.showSeconds ? '1' : '0');
+      refreshSwitch();
+      rerenderDigitalNow();
+    };
+    el.showSecondsSwitch.addEventListener('click', toggle);
+    el.showSecondsSwitch.addEventListener('keydown', (ev) => {
+      if (ev.key === ' ' || ev.key === 'Enter') {
+        ev.preventDefault();
+        toggle();
+      }
     });
   }
 
@@ -170,9 +222,6 @@
   }
 
   // ---- Golden-ratio clock positioning (portrait only) ----
-  // Goal: in portrait modes, clock CENTER should sit at ~38.2% of the SCREEN height
-  // (measured from the screen top, including status bar). We achieve this by
-  // translating the clock-region within the flex column.
   const PHI = 0.382;
   function positionClock() {
     const isPortrait = state.device === 'phone-portrait' || state.device === 'tablet-portrait';
@@ -184,7 +233,6 @@
       clockRegion.style.marginTop = '';
       return;
     }
-    // After natural layout, measure where clock center currently is relative to screen top.
     clockRegion.style.marginTop = '';
     const sRect = screen.getBoundingClientRect();
     const cRect = clockRegion.getBoundingClientRect();
@@ -205,6 +253,8 @@
   wireSegments();
   refreshSegments();
   wireDevicePicker();
+  wireSwitch();
+  refreshSwitch();
   applyDevice();
   applyLang();
   requestAnimationFrame(tick);

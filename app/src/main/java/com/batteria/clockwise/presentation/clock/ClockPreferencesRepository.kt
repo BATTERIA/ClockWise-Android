@@ -1,6 +1,7 @@
 package com.batteria.clockwise.presentation.clock
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -20,8 +21,9 @@ class ClockPreferencesRepository @Inject constructor(
 
     val state: Flow<ClockUiState> = store.data.map { prefs ->
         ClockUiState(
-            timeFormat = TimeFormat.fromKey(prefs[KEY_FORMAT]),
-            language   = Language.fromKey(prefs[KEY_LANG]),
+            timeFormat   = TimeFormat.fromKey(prefs[KEY_FORMAT]),
+            language     = Language.fromKey(prefs[KEY_LANG]),
+            showSeconds  = prefs[KEY_SHOW_SECONDS] ?: false,
         )
     }
 
@@ -33,8 +35,13 @@ class ClockPreferencesRepository @Inject constructor(
         store.edit { it[KEY_LANG] = lang.key }
     }
 
+    suspend fun setShowSeconds(show: Boolean) {
+        store.edit { it[KEY_SHOW_SECONDS] = show }
+    }
+
     private companion object {
         val KEY_FORMAT = stringPreferencesKey("time_format")
         val KEY_LANG = stringPreferencesKey("language")
+        val KEY_SHOW_SECONDS = booleanPreferencesKey("show_seconds")
     }
 }

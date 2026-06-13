@@ -24,4 +24,6 @@ enum class Language(val key: String) {
 data class ClockUiState(
     val timeFormat: TimeFormat = TimeFormat.H12,
     val language: Language = Language.EN,
+    /** Whether the digital clock should include seconds (default OFF for a cleaner look). */
+    val showSeconds: Boolean = false,
 )

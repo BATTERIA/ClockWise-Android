@@ -16,16 +16,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -67,6 +69,7 @@ fun ClockScreen(
         state = state,
         onTimeFormatChange = viewModel::setTimeFormat,
         onLanguageChange = viewModel::setLanguage,
+        onShowSecondsChange = viewModel::setShowSeconds,
     )
 }
 
@@ -75,6 +78,7 @@ fun ClockScreenContent(
     state: ClockUiState,
     onTimeFormatChange: (TimeFormat) -> Unit,
     onLanguageChange: (Language) -> Unit,
+    onShowSecondsChange: (Boolean) -> Unit,
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -93,6 +97,7 @@ fun ClockScreenContent(
                     state = state,
                     onTimeFormatChange = onTimeFormatChange,
                     onLanguageChange = onLanguageChange,
+                    onShowSecondsChange = onShowSecondsChange,
                     isTablet = isTablet,
                 )
             } else {
@@ -100,6 +105,7 @@ fun ClockScreenContent(
                     state = state,
                     onTimeFormatChange = onTimeFormatChange,
                     onLanguageChange = onLanguageChange,
+                    onShowSecondsChange = onShowSecondsChange,
                     isTablet = isTablet,
                 )
             }
@@ -114,6 +120,7 @@ private fun PortraitLayout(
     state: ClockUiState,
     onTimeFormatChange: (TimeFormat) -> Unit,
     onLanguageChange: (Language) -> Unit,
+    onShowSecondsChange: (Boolean) -> Unit,
     isTablet: Boolean,
 ) {
     // Golden ratio: clock CENTER lives at ~38.2% from top.
@@ -150,6 +157,13 @@ private fun PortraitLayout(
             onChange = onLanguageChange,
             big = isTablet,
         )
+        Spacer(modifier = Modifier.height(10.dp))
+        ShowSecondsRow(
+            value = state.showSeconds,
+            onChange = onShowSecondsChange,
+            language = state.language,
+            big = isTablet,
+        )
 
         Spacer(modifier = Modifier.weight(0.18f))
     }
@@ -162,6 +176,7 @@ private fun LandscapeLayout(
     state: ClockUiState,
     onTimeFormatChange: (TimeFormat) -> Unit,
     onLanguageChange: (Language) -> Unit,
+    onShowSecondsChange: (Boolean) -> Unit,
     isTablet: Boolean,
 ) {
     Row(
@@ -204,6 +219,13 @@ private fun LandscapeLayout(
             LanguageToggle(
                 value = state.language,
                 onChange = onLanguageChange,
+                big = isTablet,
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            ShowSecondsRow(
+                value = state.showSeconds,
+                onChange = onShowSecondsChange,
+                language = state.language,
                 big = isTablet,
             )
         }
@@ -361,18 +383,21 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
     cal.timeInMillis = nowMs
     val h = cal.get(Calendar.HOUR_OF_DAY)
     val m = cal.get(Calendar.MINUTE)
+    val s = cal.get(Calendar.SECOND)
 
     val timeText: String
     val periodText: String
     when (state.timeFormat) {
         TimeFormat.H24 -> {
-            timeText = "%02d:%02d".format(h, m)
+            timeText = if (state.showSeconds) "%02d:%02d:%02d".format(h, m, s)
+                       else "%02d:%02d".format(h, m)
             periodText = ""
         }
         TimeFormat.H12 -> {
             val isPm = h >= 12
             val h12 = if (h % 12 == 0) 12 else h % 12
-            timeText = "%02d:%02d".format(h12, m)
+            timeText = if (state.showSeconds) "%02d:%02d:%02d".format(h12, m, s)
+                       else "%02d:%02d".format(h12, m)
             periodText = when (state.language) {
                 Language.EN -> if (isPm) "PM" else "AM"
                 Language.ZH -> if (isPm) "下午" else "上午"
@@ -413,6 +438,7 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
 
 /* -------------------- segmented toggles -------------------- */
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FormatToggle(
     value: TimeFormat,
@@ -440,6 +466,7 @@ private fun FormatToggle(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LanguageToggle(
     value: Language,
@@ -464,5 +491,39 @@ private fun LanguageToggle(
                 Text(text = if (lang == Language.ZH) "中" else "EN", fontWeight = FontWeight.Bold)
             }
         }
+    }
+}
+
+/** M3 Switch row — binary toggle for show-seconds. */
+@Composable
+private fun ShowSecondsRow(
+    value: Boolean,
+    onChange: (Boolean) -> Unit,
+    language: Language,
+    big: Boolean,
+) {
+    Row(
+        modifier = Modifier.width(if (big) 260.dp else 200.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = if (language == Language.ZH) "显示秒数" else "Show seconds",
+            fontWeight = FontWeight.Bold,
+            color = BlueyPalette.Ink,
+            fontSize = if (big) 16.sp else 14.sp,
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Switch(
+            checked = value,
+            onCheckedChange = onChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = BlueyPalette.Bluey,
+                checkedBorderColor = BlueyPalette.BlueyDeep,
+                uncheckedThumbColor = BlueyPalette.InkSoft,
+                uncheckedTrackColor = BlueyPalette.BgElevated,
+                uncheckedBorderColor = BlueyPalette.Outline,
+            ),
+        )
     }
 }

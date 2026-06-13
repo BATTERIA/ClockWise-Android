@@ -48,10 +48,19 @@
                 <!-- Numbers 1-12 -->
                 <g class="numbers" id="numbers"></g>
 
-                <!-- Hands -->
+                <!-- Hands (each with an invisible wider hit area beneath the visible stroke for easier grabbing in manual mode) -->
+                <line id="hourHit"    class="hand-hit" x1="110" y1="110" x2="110" y2="60" />
                 <line id="hourHand"   class="hand hand-hour"   x1="110" y1="110" x2="110" y2="60" />
+                <line id="minuteHit"  class="hand-hit" x1="110" y1="110" x2="110" y2="40" />
                 <line id="minuteHand" class="hand hand-minute" x1="110" y1="110" x2="110" y2="40" />
+                <line id="secondHit"  class="hand-hit" x1="110" y1="110" x2="110" y2="30" />
                 <line id="secondHand" class="hand hand-second" x1="110" y1="110" x2="110" y2="30" />
+
+                <!-- Manual mode indicator badge -->
+                <g id="manualBadge" class="manual-badge" style="display:none;">
+                  <rect x="82" y="148" width="56" height="16" rx="8" />
+                  <text x="110" y="160" text-anchor="middle">MANUAL</text>
+                </g>
 
                 <!-- Center pin (bandit blue ring + chilli red dot) -->
                 <circle cx="110" cy="110" r="7.5" class="pin-outer" />
@@ -100,19 +109,35 @@
               </button>
             </div>
 
-            <!-- Show-seconds row: label + M3 Switch -->
-            <div class="switch-row">
-              <span class="switch-label" id="switchShowSecondsLabel">Show seconds</span>
-              <button
-                type="button"
-                class="m3-switch"
-                id="switchShowSeconds"
-                role="switch"
-                aria-checked="false"
-                aria-labelledby="switchShowSecondsLabel"
-              >
-                <span class="m3-switch-track" aria-hidden="true"></span>
-                <span class="m3-switch-thumb" aria-hidden="true"></span>
+            <!-- Show-seconds segmented buttons (unified with the other rows) -->
+            <div class="segmented" role="group" aria-label="Show seconds">
+              <button class="segment" data-group="showSeconds" data-value="1" id="segSecOn">
+                <span class="check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                <span class="label" id="labelSecOn">Show s</span>
+              </button>
+              <button class="segment" data-group="showSeconds" data-value="0" id="segSecOff">
+                <span class="check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                <span class="label" id="labelSecOff">Hide s</span>
+              </button>
+            </div>
+
+            <!-- Auto / Manual segmented buttons -->
+            <div class="segmented" role="group" aria-label="Clock mode">
+              <button class="segment" data-group="mode" data-value="auto" id="segModeAuto">
+                <span class="check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                <span class="label" id="labelModeAuto">Auto</span>
+              </button>
+              <button class="segment" data-group="mode" data-value="manual" id="segModeManual">
+                <span class="check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+                <span class="label" id="labelModeManual">Manual</span>
               </button>
             </div>
           </section>

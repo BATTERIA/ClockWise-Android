@@ -7,42 +7,60 @@
       am: 'AM',
       pm: 'PM',
       caption: 'Bluey-themed · golden-ratio layout · multi-orientation',
-      showSeconds: 'Show seconds',
+      showSecondsOn:  'Show s',
+      showSecondsOff: 'Hide s',
+      modeAuto:       'Auto',
+      modeManual:     'Manual',
     },
     zh: {
       am: '上午',
       pm: '下午',
       caption: 'Bluey 配色 · 黄金比例布局 · 多方向适配',
-      showSeconds: '显示秒数',
+      showSecondsOn:  '显示秒',
+      showSecondsOff: '隐藏秒',
+      modeAuto:       '自动',
+      modeManual:     '手动',
     },
   };
 
-  // ---- State (persisted) ----
+  // ---- State ----
+  // Persist user prefs except mode (mode is transient — Auto on each page load).
   const state = {
-    format: localStorage.getItem('cw.format') || '12',          // '12' | '24'
-    lang:   localStorage.getItem('cw.lang')   || 'en',          // 'en' | 'zh'
-    device: localStorage.getItem('cw.device') || 'phone-portrait',
-    // Default OFF (cleaner look initially)
-    showSeconds: localStorage.getItem('cw.showSeconds') === '1',
+    format:      localStorage.getItem('cw.format') || '12',
+    lang:        localStorage.getItem('cw.lang')   || 'en',
+    device:      localStorage.getItem('cw.device') || 'phone-portrait',
+    showSeconds: localStorage.getItem('cw.showSeconds') === '1' ? '1' : '0',
+    mode:        'auto',
+    // manualTotalSeconds in [0, 43200): 0 = 12:00:00 → 43199 = 11:59:59 (12h cycle).
+    manualTotalSeconds: 0,
   };
+
+  const CYCLE = 43200; // seconds in a 12-hour cycle
 
   // ---- DOM ----
   const el = {
-    device:        document.querySelector('.device'),
-    content:       document.querySelector('.content'),
-    digitalTime:   document.getElementById('digitalTime'),
-    digitalPeriod: document.getElementById('digitalPeriod'),
-    hour:          document.getElementById('hourHand'),
-    minute:        document.getElementById('minuteHand'),
-    second:        document.getElementById('secondHand'),
-    ticks:         document.getElementById('ticks'),
-    numbers:       document.getElementById('numbers'),
-    segments:      document.querySelectorAll('.segment'),
-    devicePicker:  document.querySelectorAll('.dp-btn'),
-    caption:       document.getElementById('caption'),
-    // Switch row(s) for show-seconds (rendered once, queried after wire)
-    showSecondsSwitch: null,
-    showSecondsLabel:  null,
+    device:         document.querySelector('.device'),
+    content:        document.querySelector('.content'),
+    screen:         document.querySelector('.screen'),
+    clockSvg:       document.querySelector('.clock'),
+    digitalTime:    document.getElementById('digitalTime'),
+    digitalPeriod:  document.getElementById('digitalPeriod'),
+    hour:           document.getElementById('hourHand'),
+    minute:         document.getElementById('minuteHand'),
+    second:         document.getElementById('secondHand'),
+    hourHit:        document.getElementById('hourHit'),
+    minuteHit:      document.getElementById('minuteHit'),
+    secondHit:      document.getElementById('secondHit'),
+    manualBadge:    document.getElementById('manualBadge'),
+    ticks:          document.getElementById('ticks'),
+    numbers:        document.getElementById('numbers'),
+    segments:       document.querySelectorAll('.segment'),
+    devicePicker:   document.querySelectorAll('.dp-btn'),
+    caption:        document.getElementById('caption'),
+    labelSecOn:     document.getElementById('labelSecOn'),
+    labelSecOff:    document.getElementById('labelSecOff'),
+    labelModeAuto:  document.getElementById('labelModeAuto'),
+    labelModeManual:document.getElementById('labelModeManual'),
   };
 
   // ---- Clock face geometry (viewBox 220x220, center 110,110) ----
@@ -52,7 +70,6 @@
   function buildFace() {
     const svgNS = 'http://www.w3.org/2000/svg';
 
-    // Ticks (60)
     const ticksFrag = document.createDocumentFragment();
     for (let i = 0; i < 60; i++) {
       const angle = (i * 6 - 90) * (Math.PI / 180);
@@ -72,7 +89,6 @@
     }
     el.ticks.appendChild(ticksFrag);
 
-    // Numbers 1–12
     const NUMBER_R = 80;
     const numFrag = document.createDocumentFragment();
     for (let n = 1; n <= 12; n++) {
@@ -88,14 +104,9 @@
     el.numbers.appendChild(numFrag);
   }
 
-  // ---- Tick loop ----
-  let lastSecond = -1;
-  function tick() {
-    const now = new Date();
-    const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
-    const ms = now.getMilliseconds();
+  // ---- Render hands + digital from a "snapshot" {h,m,s,ms} or from manualTotalSeconds ----
 
-    // Fractional seconds give continuous sweep — no per-second jump.
+  function renderFromHMS(h, m, s, ms) {
     const secondAngle = (s + ms / 1000) * 6;
     const minuteAngle = (m + s / 60) * 6;
     const hourAngle = ((h % 12) + m / 60) * 30;
@@ -103,38 +114,99 @@
     el.hour.style.transform   = `rotate(${hourAngle}deg)`;
     el.minute.style.transform = `rotate(${minuteAngle}deg)`;
     el.second.style.transform = `rotate(${secondAngle}deg)`;
+    if (el.hourHit)   el.hourHit.style.transform   = `rotate(${hourAngle}deg)`;
+    if (el.minuteHit) el.minuteHit.style.transform = `rotate(${minuteAngle}deg)`;
+    if (el.secondHit) el.secondHit.style.transform = `rotate(${secondAngle}deg)`;
 
-    // Only redraw digital text once per second (cheap, avoids text-node thrash).
-    if (s !== lastSecond) {
-      lastSecond = s;
-      renderDigital(h, m, s);
-    }
-    requestAnimationFrame(tick);
+    renderDigital(h, m, s);
+  }
+
+  function renderFromManual() {
+    const total = state.manualTotalSeconds;
+    // hour hand: smooth across the 12-hour cycle
+    const hourAngle   = (total / CYCLE) * 360;
+    const minuteAngle = ((total % 3600) / 3600) * 360;
+    const secondAngle = ((total % 60)   / 60)   * 360;
+
+    el.hour.style.transform   = `rotate(${hourAngle}deg)`;
+    el.minute.style.transform = `rotate(${minuteAngle}deg)`;
+    el.second.style.transform = `rotate(${secondAngle}deg)`;
+    if (el.hourHit)   el.hourHit.style.transform   = `rotate(${hourAngle}deg)`;
+    if (el.minuteHit) el.minuteHit.style.transform = `rotate(${minuteAngle}deg)`;
+    if (el.secondHit) el.secondHit.style.transform = `rotate(${secondAngle}deg)`;
+
+    // Convert manualTotalSeconds back to h,m,s for the digital display.
+    // We don't know AM/PM in manual mode, so just always show the 12h hour as 12/1..11,
+    // and treat as "AM" (or empty in 24h) — actually for 24h we map the 12-hour cycle to
+    // hour-of-day = h12 (no PM info). This keeps the digital readout faithful to the analog.
+    let total24 = Math.floor(total) % CYCLE;
+    if (total24 < 0) total24 += CYCLE;
+    const h12 = Math.floor(total24 / 3600); // 0..11 (we treat 0 as 12 in 12h display)
+    const m   = Math.floor((total24 % 3600) / 60);
+    const s   = total24 % 60;
+    renderDigital(h12, m, s, /* manualMode */ true);
   }
 
   function pad(n) { return String(n).padStart(2, '0'); }
 
-  function renderDigital(h, m, s) {
-    const showS = state.showSeconds;
+  function renderDigital(h, m, s, manualMode) {
+    const showS = state.showSeconds === '1';
     if (state.format === '24') {
-      // 24h: always padded, no period
+      // In manual mode, h is 0..11 from manualTotalSeconds (no AM/PM available).
+      const hh = manualMode ? (h === 0 ? 12 : h) : h;
       el.digitalTime.textContent = showS
-        ? `${pad(h)}:${pad(m)}:${pad(s)}`
-        : `${pad(h)}:${pad(m)}`;
+        ? `${pad(hh)}:${pad(m)}:${pad(s)}`
+        : `${pad(hh)}:${pad(m)}`;
       el.digitalPeriod.textContent = '';
     } else {
-      const isPm = h >= 12;
-      const h12 = h % 12 === 0 ? 12 : h % 12;
-      el.digitalTime.textContent = showS
-        ? `${pad(h12)}:${pad(m)}:${pad(s)}`
-        : `${pad(h12)}:${pad(m)}`;
-      el.digitalPeriod.textContent = isPm ? STR[state.lang].pm : STR[state.lang].am;
+      if (manualMode) {
+        const h12 = h === 0 ? 12 : h;
+        el.digitalTime.textContent = showS
+          ? `${pad(h12)}:${pad(m)}:${pad(s)}`
+          : `${pad(h12)}:${pad(m)}`;
+        // No PM info in manual mode → blank period to avoid lying.
+        el.digitalPeriod.textContent = '';
+      } else {
+        const isPm = h >= 12;
+        const h12 = h % 12 === 0 ? 12 : h % 12;
+        el.digitalTime.textContent = showS
+          ? `${pad(h12)}:${pad(m)}:${pad(s)}`
+          : `${pad(h12)}:${pad(m)}`;
+        el.digitalPeriod.textContent = isPm ? STR[state.lang].pm : STR[state.lang].am;
+      }
+    }
+  }
+
+  // ---- Auto tick loop ----
+  let rafId = null;
+  let lastSecond = -1;
+  function tickAuto() {
+    if (state.mode !== 'auto') { rafId = null; return; }
+    const now = new Date();
+    const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+    const ms = now.getMilliseconds();
+    renderFromHMS(h, m, s, ms);
+    lastSecond = s;
+    rafId = requestAnimationFrame(tickAuto);
+  }
+  function startAutoLoop() {
+    if (rafId == null) {
+      rafId = requestAnimationFrame(tickAuto);
+    }
+  }
+  function stopAutoLoop() {
+    if (rafId != null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
     }
   }
 
   function rerenderDigitalNow() {
+    if (state.mode === 'manual') {
+      renderFromManual();
+      return;
+    }
     const now = new Date();
-    // Force the once-per-second guard to refire so the new state takes effect immediately.
     lastSecond = -1;
     renderDigital(now.getHours(), now.getMinutes(), now.getSeconds());
   }
@@ -142,19 +214,49 @@
   // ---- Language ----
   function applyLang() {
     if (el.caption) el.caption.textContent = STR[state.lang].caption;
-    if (el.showSecondsLabel) el.showSecondsLabel.textContent = STR[state.lang].showSeconds;
+    if (el.labelSecOn)      el.labelSecOn.textContent      = STR[state.lang].showSecondsOn;
+    if (el.labelSecOff)     el.labelSecOff.textContent     = STR[state.lang].showSecondsOff;
+    if (el.labelModeAuto)   el.labelModeAuto.textContent   = STR[state.lang].modeAuto;
+    if (el.labelModeManual) el.labelModeManual.textContent = STR[state.lang].modeManual;
     rerenderDigitalNow();
   }
 
-  // ---- Segmented buttons ----
+  // ---- Segmented buttons (all four rows) ----
   function refreshSegments() {
     el.segments.forEach((btn) => {
       const group = btn.dataset.group;
       const value = btn.dataset.value;
-      const selected = state[group] === value;
+      const selected = String(state[group]) === value;
       btn.classList.toggle('selected', selected);
       btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
     });
+  }
+
+  function applyShowSeconds() {
+    const hide = state.showSeconds !== '1';
+    document.body.classList.toggle('hide-seconds', hide);
+    // also flag on the device so styles cascade if needed
+    if (el.device) el.device.classList.toggle('hide-seconds', hide);
+  }
+
+  function applyMode() {
+    const isManual = state.mode === 'manual';
+    document.body.classList.toggle('manual-mode', isManual);
+    if (el.device) el.device.classList.toggle('manual-mode', isManual);
+    if (el.manualBadge) el.manualBadge.style.display = isManual ? '' : 'none';
+
+    if (isManual) {
+      // Seed manualTotalSeconds from current real time.
+      const now = new Date();
+      const h = now.getHours() % 12;
+      const m = now.getMinutes();
+      const s = now.getSeconds();
+      state.manualTotalSeconds = h * 3600 + m * 60 + s;
+      stopAutoLoop();
+      renderFromManual();
+    } else {
+      startAutoLoop();
+    }
   }
 
   function wireSegments() {
@@ -162,43 +264,120 @@
       btn.addEventListener('click', () => {
         const group = btn.dataset.group;
         const value = btn.dataset.value;
-        if (state[group] === value) return;
+        if (String(state[group]) === value) return;
         state[group] = value;
-        localStorage.setItem(`cw.${group}`, value);
+        if (group !== 'mode') {
+          localStorage.setItem(`cw.${group}`, value);
+        }
         refreshSegments();
         if (group === 'lang') applyLang();
         if (group === 'format') rerenderDigitalNow();
+        if (group === 'showSeconds') { applyShowSeconds(); rerenderDigitalNow(); }
+        if (group === 'mode') applyMode();
       });
     });
   }
 
-  // ---- M3 Switch (show-seconds) ----
-  function refreshSwitch() {
-    if (!el.showSecondsSwitch) return;
-    el.showSecondsSwitch.classList.toggle('on', state.showSeconds);
-    el.showSecondsSwitch.setAttribute('aria-checked', state.showSeconds ? 'true' : 'false');
-  }
-  function wireSwitch() {
-    el.showSecondsSwitch = document.getElementById('switchShowSeconds');
-    el.showSecondsLabel  = document.getElementById('switchShowSecondsLabel');
-    if (!el.showSecondsSwitch) return;
+  // ---- Manual drag handling ----
+  // Track previous pointer angle for delta-based update (handles wrap automatically).
+  const drag = {
+    active: false,
+    hand: null,       // 'hour' | 'minute' | 'second'
+    lastAngle: 0,
+    pointerId: null,
+  };
 
-    const toggle = () => {
-      state.showSeconds = !state.showSeconds;
-      localStorage.setItem('cw.showSeconds', state.showSeconds ? '1' : '0');
-      refreshSwitch();
-      rerenderDigitalNow();
-    };
-    el.showSecondsSwitch.addEventListener('click', toggle);
-    el.showSecondsSwitch.addEventListener('keydown', (ev) => {
-      if (ev.key === ' ' || ev.key === 'Enter') {
-        ev.preventDefault();
-        toggle();
-      }
+  // Compute angle in degrees (0=12 o'clock, clockwise positive) from pointer event.
+  function angleFromPointer(ev) {
+    const rect = el.clockSvg.getBoundingClientRect();
+    // Center in CSS pixels (SVG viewBox center is 110,110 of a 220 viewBox)
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = ev.clientX - cx;
+    const dy = ev.clientY - cy;
+    // atan2 gives angle from +X axis. We want 0 at 12 o'clock = -Y axis. So:
+    let deg = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+    // Normalize to [0, 360)
+    deg = ((deg % 360) + 360) % 360;
+    return deg;
+  }
+
+  // Wrap a delta into (-180, 180] so small motions never look like big jumps.
+  function shortestDelta(prev, curr) {
+    let d = curr - prev;
+    while (d > 180) d -= 360;
+    while (d <= -180) d += 360;
+    return d;
+  }
+
+  function wrapTotal(total) {
+    let t = total % CYCLE;
+    if (t < 0) t += CYCLE;
+    return t;
+  }
+
+  function startDrag(handName, ev) {
+    if (state.mode !== 'manual') return;
+    drag.active = true;
+    drag.hand = handName;
+    drag.lastAngle = angleFromPointer(ev);
+    drag.pointerId = ev.pointerId;
+    document.body.classList.add('dragging');
+    if (el.device) el.device.classList.add('dragging');
+    try { ev.target.setPointerCapture(ev.pointerId); } catch (_) { /* ignore */ }
+    ev.preventDefault();
+  }
+
+  function onDragMove(ev) {
+    if (!drag.active) return;
+    const newAngle = angleFromPointer(ev);
+    const delta = shortestDelta(drag.lastAngle, newAngle);
+    drag.lastAngle = newAngle;
+
+    // Convert degree delta → seconds delta based on which hand is being dragged.
+    // Hour hand:   360° = 12h = 43200s   → 1° = 120s
+    // Minute hand: 360° = 1h  = 3600s    → 1° = 10s
+    // Second hand: 360° = 1min = 60s     → 1° = 1/6 s
+    let secondsDelta = 0;
+    if (drag.hand === 'hour')        secondsDelta = delta * 120;
+    else if (drag.hand === 'minute') secondsDelta = delta * 10;
+    else if (drag.hand === 'second') secondsDelta = delta / 6;
+
+    state.manualTotalSeconds = wrapTotal(state.manualTotalSeconds + secondsDelta);
+    renderFromManual();
+  }
+
+  function endDrag(ev) {
+    if (!drag.active) return;
+    drag.active = false;
+    drag.hand = null;
+    document.body.classList.remove('dragging');
+    if (el.device) el.device.classList.remove('dragging');
+    if (ev && ev.target && drag.pointerId != null) {
+      try { ev.target.releasePointerCapture(drag.pointerId); } catch (_) { /* ignore */ }
+    }
+    drag.pointerId = null;
+  }
+
+  function wireDrag() {
+    // Wire each hand (both the visible line and the wider invisible hit area).
+    const pairs = [
+      ['hour',   el.hour,   el.hourHit],
+      ['minute', el.minute, el.minuteHit],
+      ['second', el.second, el.secondHit],
+    ];
+    pairs.forEach(([name, visible, hit]) => {
+      [visible, hit].forEach(node => {
+        if (!node) return;
+        node.addEventListener('pointerdown', (ev) => startDrag(name, ev));
+      });
     });
+    document.addEventListener('pointermove', onDragMove);
+    document.addEventListener('pointerup', endDrag);
+    document.addEventListener('pointercancel', endDrag);
   }
 
-  // ---- Device picker (phone-portrait | phone-landscape | tablet-portrait | tablet-landscape) ----
+  // ---- Device picker ----
   const DEVICES = ['phone-portrait', 'phone-landscape', 'tablet-portrait', 'tablet-landscape'];
   function applyDevice() {
     DEVICES.forEach(d => el.device.classList.remove(d));
@@ -206,7 +385,6 @@
     el.devicePicker.forEach(btn => {
       btn.classList.toggle('selected', btn.dataset.device === state.device);
     });
-    // Re-position clock to keep golden ratio in portrait modes
     requestAnimationFrame(positionClock);
   }
   function wireDevicePicker() {
@@ -253,12 +431,11 @@
   wireSegments();
   refreshSegments();
   wireDevicePicker();
-  wireSwitch();
-  refreshSwitch();
+  wireDrag();
   applyDevice();
   applyLang();
-  requestAnimationFrame(tick);
-  // initial positioning after fonts have a chance to load
+  applyShowSeconds();
+  applyMode();           // sets mode=auto by default → starts the loop
   setTimeout(positionClock, 80);
   setTimeout(positionClock, 400);
 })();

@@ -214,6 +214,50 @@ html, body {
 .hand {
   stroke-linecap: round;
   transform-origin: 110px 110px;
+  pointer-events: stroke;
+}
+/* Invisible wider hit area for easier grabbing in manual mode */
+.hand-hit {
+  stroke: transparent;
+  stroke-width: 20;
+  stroke-linecap: round;
+  transform-origin: 110px 110px;
+  pointer-events: stroke;
+  display: none;
+}
+.manual-mode .hand-hit {
+  display: inline;
+}
+.manual-mode .hand,
+.manual-mode .hand-hit {
+  cursor: grab;
+}
+.manual-mode.dragging .hand,
+.manual-mode.dragging .hand-hit {
+  cursor: grabbing;
+}
+
+/* Manual mode visual cues */
+.manual-mode .face-bg {
+  fill: #FFF1D9; /* slight warm hue shift to signal manual */
+}
+.manual-badge rect {
+  fill: var(--cw-bingo);
+  opacity: 0.92;
+}
+.manual-badge text {
+  fill: white;
+  font-family: "Nunito", sans-serif;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  dominant-baseline: central;
+}
+
+/* Hide second hand entirely when 'hide seconds' is selected */
+.hide-seconds .hand-second,
+.hide-seconds #secondHit {
+  display: none !important;
 }
 .hand-hour {
   stroke: var(--cw-bandit);
@@ -330,83 +374,7 @@ html, body {
   opacity: 1;
 }
 
-/* ===== M3 Switch (binary toggle, e.g. show-seconds) =====
-   Track 52x32 with outline when off, filled when on.
-   Thumb sizes: 16px (off) / 24px (on) with a small spring-y motion. */
-.switch-row {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  width: 100%;
-  max-width: 240px;
-  padding: 4px 4px;
-}
-.switch-label {
-  font-family: "Nunito", sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--cw-ink);
-  letter-spacing: 0.1px;
-  user-select: none;
-}
-.m3-switch {
-  position: relative;
-  flex-shrink: 0;
-  width: 52px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  display: inline-block;
-  outline: none;
-}
-.m3-switch:focus-visible {
-  box-shadow: 0 0 0 3px rgba(79, 179, 255, 0.45);
-  border-radius: 16px;
-}
-.m3-switch-track {
-  position: absolute;
-  inset: 0;
-  border-radius: 16px;
-  background: var(--cw-bg-elevated);
-  border: 2px solid var(--cw-outline);
-  transition: background-color 0.22s ease, border-color 0.22s ease;
-}
-.m3-switch-thumb {
-  position: absolute;
-  top: 50%;
-  left: 8px;
-  width: 16px;
-  height: 16px;
-  margin-top: -8px;
-  border-radius: 50%;
-  background: var(--cw-ink-soft);
-  transition:
-    left 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
-    width 0.18s ease,
-    height 0.18s ease,
-    margin 0.18s ease,
-    background-color 0.22s ease,
-    transform 0.12s ease;
-}
-.m3-switch:active .m3-switch-thumb {
-  transform: scale(0.92);
-}
-.m3-switch.on .m3-switch-track {
-  background: var(--cw-bluey);
-  border-color: var(--cw-bluey-deep);
-}
-.m3-switch.on .m3-switch-thumb {
-  /* Thumb grows to 24px and slides right. left = 52 - 24 - 4 = 24 */
-  left: 24px;
-  width: 24px;
-  height: 24px;
-  margin-top: -12px;
-  background: #ffffff;
-  box-shadow: 0 1px 2px rgba(30, 58, 82, 0.25);
-}
+/* ===== Segmented buttons (M3) ===== */
 
 /* ===== Gesture pill ===== */
 .gesture-pill {
@@ -515,11 +483,7 @@ html, body {
 .device.phone-landscape .digital-card { padding: 14px 24px 10px; min-width: 180px; }
 
 /* In landscape, the info-region uses align-items: stretch so segmented buttons
-   span the column. Switch row should self-center to avoid awkward stretching. */
-.device.phone-landscape .switch-row,
-.device.tablet-landscape .switch-row {
-  align-self: center;
-}
+   span the column. */
 
 /* --- Tablet portrait: portrait flow but bigger clock + bigger digital --- */
 .device.tablet-portrait .content {

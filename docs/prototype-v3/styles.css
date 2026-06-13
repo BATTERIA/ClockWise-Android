@@ -297,6 +297,14 @@ html, body {
 
 /* ===== Digital clock card (M3 outlined) ===== */
 .digital-card {
+  /* v3.5: two fixed widths driven by .hide-seconds. Width animates between them
+     smoothly so the card doesn't snap when toggling Show s / Hide s.
+     Widths are sized to comfortably fit "23:59:59 PM" / "23:59 PM" at the
+     current digital-time font (56px Roboto Mono, tabular-nums). */
+  --w-with-seconds: 260px;
+  --w-without-seconds: 200px;
+  width: var(--w-with-seconds);
+  box-sizing: border-box;
   background: var(--cw-bg-elevated);
   border: 2px solid var(--cw-outline);
   border-radius: 20px;
@@ -306,12 +314,15 @@ html, body {
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  min-width: 220px;
   box-shadow: var(--shadow-soft);
-  /* Card height is stable thanks to reserved period slot. The transition stays
-     on transform only — height never animates because it never changes. */
-  transition: transform 0.2s ease;
+  /* Height stable via reserved period slot; width animates between the two
+     seconds modes. transform retained for the hover lift. */
+  transition: transform 0.2s ease,
+              width 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+/* When seconds are hidden, snap to the narrower width. The class is toggled
+   on .device (and body) by applyShowSeconds() in app.js. */
+.hide-seconds .digital-card { width: var(--w-without-seconds); }
 .digital-card:hover { transform: translateY(-1px); }
 
 .digital-time {
@@ -506,12 +517,22 @@ html, body {
 /* tablet landscape — bigger clock + bigger digital */
 .device.tablet-landscape .clock-wrap { max-width: 460px; }
 .device.tablet-landscape .digital-time { font-size: 80px; }
-.device.tablet-landscape .digital-card { padding: 28px 40px 22px; min-width: 280px; }
+.device.tablet-landscape .digital-card {
+  padding: 28px 40px 22px;
+  /* Bigger font (80px) needs wider card — override the two width vars. */
+  --w-with-seconds: 360px;
+  --w-without-seconds: 270px;
+}
 .device.tablet-landscape .segmented { max-width: 300px; height: 48px; border-radius: 24px; }
 
 /* phone landscape — tighter spacing */
 .device.phone-landscape .digital-time { font-size: 48px; }
-.device.phone-landscape .digital-card { padding: 14px 24px 10px; min-width: 180px; }
+.device.phone-landscape .digital-card {
+  padding: 14px 24px 10px;
+  /* Smaller font (48px) → narrower card. */
+  --w-with-seconds: 230px;
+  --w-without-seconds: 175px;
+}
 
 /* In landscape, the info-region uses align-items: stretch so segmented buttons
    span the column. */
@@ -523,7 +544,12 @@ html, body {
 }
 .device.tablet-portrait .clock-wrap { max-width: 460px; width: 82%; }
 .device.tablet-portrait .digital-time { font-size: 80px; }
-.device.tablet-portrait .digital-card { padding: 26px 40px 20px; min-width: 280px; }
+.device.tablet-portrait .digital-card {
+  padding: 26px 40px 20px;
+  /* Match tablet-landscape sizing for 80px font. */
+  --w-with-seconds: 360px;
+  --w-without-seconds: 270px;
+}
 .device.tablet-portrait .segmented { max-width: 300px; height: 48px; border-radius: 24px; }
 
 /* ============================================================

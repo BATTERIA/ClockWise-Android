@@ -1,6 +1,7 @@
 package com.batteria.clockwise.presentation.clock
 
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -667,7 +668,24 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
     }
 
     OutlinedCard(
-        modifier = Modifier.padding(horizontal = 4.dp),
+        // v3.5: card has a fixed width per seconds-mode, animating between them
+        // so toggling Show s / Hide s glides smoothly instead of snapping.
+        // Tablet (big=true) uses 80sp digits → needs noticeably wider widths.
+        modifier = Modifier.padding(horizontal = 4.dp).width(
+            animateDpAsState(
+                targetValue = when {
+                    big && state.showSeconds  -> 320.dp
+                    big && !state.showSeconds -> 240.dp
+                    !big && state.showSeconds -> 240.dp
+                    else                      -> 180.dp
+                },
+                animationSpec = tween(
+                    durationMillis = 280,
+                    easing = FastOutSlowInEasing,
+                ),
+                label = "digitalCardWidth",
+            ).value
+        ),
     ) {
         Column(
             modifier = Modifier

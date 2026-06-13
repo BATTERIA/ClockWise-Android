@@ -1,5 +1,12 @@
 package com.batteria.clockwise.presentation.clock
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -141,7 +148,16 @@ private fun PortraitLayout(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = if (isTablet) 48.dp else 24.dp),
+            .padding(horizontal = if (isTablet) 48.dp else 24.dp)
+            // animateContentSize on the portrait column so when the AM/PM badge
+            // appears or disappears, the segmented toggle rows below glide into
+            // their new positions instead of snapping.
+            .animateContentSize(
+                animationSpec = tween(
+                    durationMillis = 280,
+                    easing = FastOutSlowInEasing,
+                ),
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(modifier = Modifier.weight(0.10f))
@@ -227,7 +243,15 @@ private fun LandscapeLayout(
         Column(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxHeight(),
+                .fillMaxHeight()
+                // Same easing on the landscape info-column so the toggles
+                // below the digital card don't snap when AM/PM appears.
+                .animateContentSize(
+                    animationSpec = tween(
+                        durationMillis = 280,
+                        easing = FastOutSlowInEasing,
+                    ),
+                ),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -646,10 +670,19 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
         modifier = Modifier.padding(horizontal = 4.dp),
     ) {
         Column(
-            modifier = Modifier.padding(
-                horizontal = if (big) 40.dp else 28.dp,
-                vertical = if (big) 22.dp else 16.dp,
-            ),
+            modifier = Modifier
+                .padding(
+                    horizontal = if (big) 40.dp else 28.dp,
+                    vertical = if (big) 22.dp else 16.dp,
+                )
+                // Animate the card's own height so the AM/PM collapse is smooth
+                // inside the card too (the badge slot shrinks gracefully).
+                .animateContentSize(
+                    animationSpec = tween(
+                        durationMillis = 280,
+                        easing = FastOutSlowInEasing,
+                    ),
+                ),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
@@ -659,13 +692,21 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
                 color = BlueyPalette.Ink,
                 style = MaterialTheme.typography.displayLarge,
             )
-            // AM/PM animates in/out instead of jumping.
+            // AM/PM uses expandVertically/shrinkVertically so that BOTH the fade
+            // AND the vertical layout collapse are animated. Without these the
+            // height change snaps and the toggles below jump.
             androidx.compose.animation.AnimatedVisibility(
                 visible = showPeriod && periodText.isNotEmpty(),
-                enter = androidx.compose.animation.fadeIn() +
-                        androidx.compose.animation.slideInVertically(initialOffsetY = { -it / 2 }),
-                exit = androidx.compose.animation.fadeOut() +
-                       androidx.compose.animation.slideOutVertically(targetOffsetY = { -it / 2 }),
+                enter = fadeIn(animationSpec = tween(220)) +
+                        expandVertically(
+                            animationSpec = tween(280, easing = FastOutSlowInEasing),
+                            expandFrom = Alignment.Top,
+                        ),
+                exit = fadeOut(animationSpec = tween(180)) +
+                       shrinkVertically(
+                           animationSpec = tween(280, easing = FastOutSlowInEasing),
+                           shrinkTowards = Alignment.Top,
+                       ),
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Spacer(modifier = Modifier.height(2.dp))

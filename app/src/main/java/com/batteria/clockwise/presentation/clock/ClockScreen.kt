@@ -311,6 +311,9 @@ private fun AnalogClock(
     val onDeltaState = rememberUpdatedState(onManualDelta)
     val showSecondsState = rememberUpdatedState(state.showSeconds)
 
+    // Track which hand is currently being dragged (purely visual: thicker stroke).
+    var draggingHand by remember { mutableStateOf(HAND_NONE) }
+
     // Drag state local to the pointerInput closure.
     val dragModifier = if (state.mode == ClockMode.MANUAL) {
         Modifier.pointerInput(Unit) {
@@ -333,9 +336,10 @@ private fun AnalogClock(
                         secondAngle = secondAngleState.value,
                         showSeconds = showSecondsState.value,
                     )
+                    draggingHand = grabbedHand
                 },
-                onDragEnd   = { grabbedHand = HAND_NONE },
-                onDragCancel = { grabbedHand = HAND_NONE },
+                onDragEnd   = { grabbedHand = HAND_NONE; draggingHand = HAND_NONE },
+                onDragCancel = { grabbedHand = HAND_NONE; draggingHand = HAND_NONE },
                 onDrag = { change, _ ->
                     if (grabbedHand == HAND_NONE) return@detectDragGestures
                     change.consume()
@@ -376,10 +380,13 @@ private fun AnalogClock(
         drawClockFace()
         drawTicks()
         drawNumbers()
-        drawHand(angleDeg = hourAngle,   lengthFrac = 0.55f, strokeWidth = 14f, color = BlueyPalette.Bandit)
-        drawHand(angleDeg = minuteAngle, lengthFrac = 0.78f, strokeWidth = 10f, color = BlueyPalette.Bluey)
+        val hourSw   = if (draggingHand == HAND_HOUR)   14f * 1.6f else 14f
+        val minuteSw = if (draggingHand == HAND_MINUTE) 10f * 1.6f else 10f
+        val secondSw = if (draggingHand == HAND_SECOND) 4f  * 1.6f else 4f
+        drawHand(angleDeg = hourAngle,   lengthFrac = 0.55f, strokeWidth = hourSw,   color = BlueyPalette.Bandit)
+        drawHand(angleDeg = minuteAngle, lengthFrac = 0.78f, strokeWidth = minuteSw, color = BlueyPalette.Bluey)
         if (state.showSeconds) {
-            drawHand(angleDeg = secondAngle, lengthFrac = 0.86f, strokeWidth = 4f, color = BlueyPalette.Chilli)
+            drawHand(angleDeg = secondAngle, lengthFrac = 0.86f, strokeWidth = secondSw, color = BlueyPalette.Chilli)
         }
         drawCenterPin()
         if (state.mode == ClockMode.MANUAL) {
@@ -410,7 +417,7 @@ private fun shortestDelta(prev: Float, curr: Float): Float {
     return d
 }
 
-/** Pick the hand whose angle is closest to the pointer angle (within ±15°). */
+/** Pick the hand whose angle is closest to the pointer angle (within ±20°). */
 private fun pickHand(
     pointerAngle: Float,
     hourAngle: Float,
@@ -418,7 +425,8 @@ private fun pickHand(
     secondAngle: Float,
     showSeconds: Boolean,
 ): Int {
-    val tolerance = 15f
+    // Wider tolerance (was 15°) so taps land more easily on phones.
+    val tolerance = 20f
     val dHour = abs(shortestDelta(hourAngle,   pointerAngle))
     val dMin  = abs(shortestDelta(minuteAngle, pointerAngle))
     val dSec  = if (showSeconds) abs(shortestDelta(secondAngle, pointerAngle)) else Float.MAX_VALUE
@@ -582,6 +590,8 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
 
     val timeText: String
     val periodText: String
+    // Track whether period should be visible (only true in AUTO + 12h).
+    val showPeriod: Boolean
     if (isAuto) {
         val cal = remember { Calendar.getInstance() }
         cal.timeInMillis = nowMs
@@ -593,6 +603,7 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
                 timeText = if (state.showSeconds) "%02d:%02d:%02d".format(h, m, s)
                            else "%02d:%02d".format(h, m)
                 periodText = ""
+                showPeriod = false
             }
             TimeFormat.H12 -> {
                 val isPm = h >= 12
@@ -603,18 +614,30 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
                     Language.EN -> if (isPm) "PM" else "AM"
                     Language.ZH -> if (isPm) "下午" else "上午"
                 }
+                showPeriod = true
             }
         }
     } else {
         // Manual mode: derive from manualTotalSeconds; no AM/PM info.
         val total = ((state.manualTotalSeconds.toInt() % 43200) + 43200) % 43200
         val h12raw = total / 3600         // 0..11
-        val h12 = if (h12raw == 0) 12 else h12raw
         val m = (total % 3600) / 60
         val s = total % 60
-        timeText = if (state.showSeconds) "%02d:%02d:%02d".format(h12, m, s)
-                   else "%02d:%02d".format(h12, m)
-        periodText = "" // we don't lie about AM/PM in manual mode
+        when (state.timeFormat) {
+            TimeFormat.H24 -> {
+                // 24h manual: show 0..11 as-is so the toggle is visibly different from 12h.
+                timeText = if (state.showSeconds) "%02d:%02d:%02d".format(h12raw, m, s)
+                           else "%02d:%02d".format(h12raw, m)
+            }
+            TimeFormat.H12 -> {
+                val h12 = if (h12raw == 0) 12 else h12raw
+                timeText = if (state.showSeconds) "%02d:%02d:%02d".format(h12, m, s)
+                           else "%02d:%02d".format(h12, m)
+            }
+        }
+        // Never lie about AM/PM in manual mode.
+        periodText = when (state.language) { Language.EN -> "AM"; Language.ZH -> "上午" }
+        showPeriod = false
     }
 
     OutlinedCard(
@@ -634,14 +657,23 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
                 color = BlueyPalette.Ink,
                 style = MaterialTheme.typography.displayLarge,
             )
-            if (periodText.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = periodText,
-                    fontSize = if (big) 16.sp else 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = BlueyPalette.BlueyDeep,
-                )
+            // AM/PM animates in/out instead of jumping.
+            androidx.compose.animation.AnimatedVisibility(
+                visible = showPeriod && periodText.isNotEmpty(),
+                enter = androidx.compose.animation.fadeIn() +
+                        androidx.compose.animation.slideInVertically(initialOffsetY = { -it / 2 }),
+                exit = androidx.compose.animation.fadeOut() +
+                       androidx.compose.animation.slideOutVertically(targetOffsetY = { -it / 2 }),
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = periodText,
+                        fontSize = if (big) 16.sp else 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = BlueyPalette.BlueyDeep,
+                    )
+                }
             }
         }
     }

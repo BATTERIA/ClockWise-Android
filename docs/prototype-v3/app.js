@@ -151,21 +151,32 @@
 
   function renderDigital(h, m, s, manualMode) {
     const showS = state.showSeconds === '1';
+    // Always keep textContent set (even when hidden) so the .hidden class
+    // can animate without layout jumps.
     if (state.format === '24') {
       // In manual mode, h is 0..11 from manualTotalSeconds (no AM/PM available).
-      const hh = manualMode ? (h === 0 ? 12 : h) : h;
+      // Show actual 0..11 (no 12-fudge) so 24h is visibly different from 12h.
+      const hh = manualMode ? h : h;
       el.digitalTime.textContent = showS
         ? `${pad(hh)}:${pad(m)}:${pad(s)}`
         : `${pad(hh)}:${pad(m)}`;
-      el.digitalPeriod.textContent = '';
+      // Period: keep last text but hide via class for animation.
+      if (!el.digitalPeriod.textContent) {
+        el.digitalPeriod.textContent = STR[state.lang].am;
+      }
+      el.digitalPeriod.classList.add('hidden');
     } else {
       if (manualMode) {
+        // 12h manual: show 12,1..11. AM/PM not knowable.
         const h12 = h === 0 ? 12 : h;
         el.digitalTime.textContent = showS
           ? `${pad(h12)}:${pad(m)}:${pad(s)}`
           : `${pad(h12)}:${pad(m)}`;
-        // No PM info in manual mode → blank period to avoid lying.
-        el.digitalPeriod.textContent = '';
+        // Hide period (no AM/PM info), but keep text for layout stability.
+        if (!el.digitalPeriod.textContent) {
+          el.digitalPeriod.textContent = STR[state.lang].am;
+        }
+        el.digitalPeriod.classList.add('hidden');
       } else {
         const isPm = h >= 12;
         const h12 = h % 12 === 0 ? 12 : h % 12;
@@ -173,6 +184,7 @@
           ? `${pad(h12)}:${pad(m)}:${pad(s)}`
           : `${pad(h12)}:${pad(m)}`;
         el.digitalPeriod.textContent = isPm ? STR[state.lang].pm : STR[state.lang].am;
+        el.digitalPeriod.classList.remove('hidden');
       }
     }
   }
@@ -324,6 +336,11 @@
     drag.pointerId = ev.pointerId;
     document.body.classList.add('dragging');
     if (el.device) el.device.classList.add('dragging');
+    // Add .dragging to the visible hand so CSS can thicken its stroke.
+    const visibleHand = handName === 'hour' ? el.hour
+                      : handName === 'minute' ? el.minute
+                      : el.second;
+    if (visibleHand) visibleHand.classList.add('dragging');
     try { ev.target.setPointerCapture(ev.pointerId); } catch (_) { /* ignore */ }
     ev.preventDefault();
   }
@@ -349,6 +366,12 @@
 
   function endDrag(ev) {
     if (!drag.active) return;
+    // Remove .dragging from the hand we were dragging.
+    const visibleHand = drag.hand === 'hour' ? el.hour
+                      : drag.hand === 'minute' ? el.minute
+                      : drag.hand === 'second' ? el.second
+                      : null;
+    if (visibleHand) visibleHand.classList.remove('dragging');
     drag.active = false;
     drag.hand = null;
     document.body.classList.remove('dragging');

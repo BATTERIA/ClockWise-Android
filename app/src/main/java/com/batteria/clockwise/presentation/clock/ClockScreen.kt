@@ -618,7 +618,7 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
             }
         }
     } else {
-        // Manual mode: derive from manualTotalSeconds; no AM/PM info.
+        // Manual mode: derive from manualTotalSeconds; no AM/PM info from the dial.
         val total = ((state.manualTotalSeconds.toInt() % 43200) + 43200) % 43200
         val h12raw = total / 3600         // 0..11
         val m = (total % 3600) / 60
@@ -628,16 +628,18 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
                 // 24h manual: show 0..11 as-is so the toggle is visibly different from 12h.
                 timeText = if (state.showSeconds) "%02d:%02d:%02d".format(h12raw, m, s)
                            else "%02d:%02d".format(h12raw, m)
+                periodText = when (state.language) { Language.EN -> "AM"; Language.ZH -> "上午" }
+                showPeriod = false
             }
             TimeFormat.H12 -> {
                 val h12 = if (h12raw == 0) 12 else h12raw
                 timeText = if (state.showSeconds) "%02d:%02d:%02d".format(h12, m, s)
                            else "%02d:%02d".format(h12, m)
+                // Show AM as default in manual 12h so the format toggle is visibly different.
+                periodText = when (state.language) { Language.EN -> "AM"; Language.ZH -> "上午" }
+                showPeriod = true
             }
         }
-        // Never lie about AM/PM in manual mode.
-        periodText = when (state.language) { Language.EN -> "AM"; Language.ZH -> "上午" }
-        showPeriod = false
     }
 
     OutlinedCard(

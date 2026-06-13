@@ -167,16 +167,15 @@
       el.digitalPeriod.classList.add('hidden');
     } else {
       if (manualMode) {
-        // 12h manual: show 12,1..11. AM/PM not knowable.
+        // 12h manual: show 12,1..11. AM/PM not knowable from the analog dial,
+        // but we still show the AM badge so the 12h↔ 24h toggle is visibly
+        // different (and the user can mentally interpret it as "AM-side of the dial").
         const h12 = h === 0 ? 12 : h;
         el.digitalTime.textContent = showS
           ? `${pad(h12)}:${pad(m)}:${pad(s)}`
           : `${pad(h12)}:${pad(m)}`;
-        // Hide period (no AM/PM info), but keep text for layout stability.
-        if (!el.digitalPeriod.textContent) {
-          el.digitalPeriod.textContent = STR[state.lang].am;
-        }
-        el.digitalPeriod.classList.add('hidden');
+        el.digitalPeriod.textContent = STR[state.lang].am;
+        el.digitalPeriod.classList.remove('hidden');
       } else {
         const isPm = h >= 12;
         const h12 = h % 12 === 0 ? 12 : h % 12;

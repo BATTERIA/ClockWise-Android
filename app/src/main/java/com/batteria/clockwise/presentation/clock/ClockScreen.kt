@@ -13,7 +13,9 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -27,11 +29,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.SegmentedButton
@@ -40,6 +48,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -59,6 +68,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -66,6 +76,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.batteria.clockwise.presentation.theme.BlueyPalette
+import com.batteria.clockwise.util.TimeSpeech
+import com.batteria.clockwise.util.TtsManager
+import com.batteria.clockwise.util.toLocale
 import java.util.Calendar
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -343,48 +356,78 @@ private fun AnalogClock(
     // Track which hand is currently being dragged (purely visual: thicker stroke).
     var draggingHand by remember { mutableStateOf(HAND_NONE) }
 
-    // Drag state local to the pointerInput closure.
+    // v3.6.5: animate the stroke widths with a medium-bouncy spring so that the
+    // press-down thickening pops smoothly instead of snapping. Defined here in
+    // the composable scope so we can pass the live values into the Canvas draw.
+    val hourSw by animateFloatAsState(
+        targetValue = if (draggingHand == HAND_HOUR) 14f * 1.6f else 14f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium,
+        ),
+        label = "hourSw",
+    )
+    val minuteSw by animateFloatAsState(
+        targetValue = if (draggingHand == HAND_MINUTE) 10f * 1.6f else 10f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium,
+        ),
+        label = "minuteSw",
+    )
+    val secondSw by animateFloatAsState(
+        targetValue = if (draggingHand == HAND_SECOND) 4f * 1.6f else 4f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium,
+        ),
+        label = "secondSw",
+    )
+
+    // v3.6.5: switch from detectDragGestures to awaitEachGesture so we can
+    // mark draggingHand the instant a finger touches the hand — not only
+    // after movement begins. The hand now thickens immediately on press-down.
     val dragModifier = if (state.mode == ClockMode.MANUAL) {
         Modifier.pointerInput(Unit) {
-            // Per-gesture variables captured in detectDragGestures.
-            var grabbedHand: Int = HAND_NONE
-            var lastAngle = 0f
-            // Center of the drawing area in this pointerInput's local coords.
             val w = size.width.toFloat()
             val h = size.height.toFloat()
             val cx = w / 2f
             val cy = h / 2f
-            detectDragGestures(
-                onDragStart = { offset ->
-                    val pointerAngle = pointerAngleDeg(offset.x - cx, offset.y - cy)
-                    lastAngle = pointerAngle
-                    grabbedHand = pickHand(
-                        pointerAngle = pointerAngle,
-                        hourAngle = hourAngleState.value,
-                        minuteAngle = minuteAngleState.value,
-                        secondAngle = secondAngleState.value,
-                        showSeconds = showSecondsState.value,
-                    )
-                    draggingHand = grabbedHand
-                },
-                onDragEnd   = { grabbedHand = HAND_NONE; draggingHand = HAND_NONE },
-                onDragCancel = { grabbedHand = HAND_NONE; draggingHand = HAND_NONE },
-                onDrag = { change, _ ->
-                    if (grabbedHand == HAND_NONE) return@detectDragGestures
-                    change.consume()
-                    val pos = change.position
-                    val newAngle = pointerAngleDeg(pos.x - cx, pos.y - cy)
-                    val delta = shortestDelta(lastAngle, newAngle)
-                    lastAngle = newAngle
-                    val secondsDelta = when (grabbedHand) {
-                        HAND_HOUR   -> delta * 120f   // 1° = 120s
-                        HAND_MINUTE -> delta * 10f    // 1° = 10s
-                        HAND_SECOND -> delta / 6f     // 1° = 1/6 s
-                        else -> 0f
+            awaitEachGesture {
+                val down = awaitFirstDown(requireUnconsumed = false)
+                val downAngle = pointerAngleDeg(down.position.x - cx, down.position.y - cy)
+                var lastAngle = downAngle
+                val grabbedHand = pickHand(
+                    pointerAngle = downAngle,
+                    hourAngle = hourAngleState.value,
+                    minuteAngle = minuteAngleState.value,
+                    secondAngle = secondAngleState.value,
+                    showSeconds = showSecondsState.value,
+                )
+                if (grabbedHand == HAND_NONE) return@awaitEachGesture
+                // PRESS-DOWN visual: widen immediately, before any drag motion.
+                draggingHand = grabbedHand
+                try {
+                    // Then handle the drag portion of the gesture in the same flow.
+                    drag(down.id) { change ->
+                        change.consume()
+                        val pos = change.position
+                        val newAngle = pointerAngleDeg(pos.x - cx, pos.y - cy)
+                        val delta = shortestDelta(lastAngle, newAngle)
+                        lastAngle = newAngle
+                        val secondsDelta = when (grabbedHand) {
+                            HAND_HOUR   -> delta * 120f   // 1° = 120s
+                            HAND_MINUTE -> delta * 10f    // 1° = 10s
+                            HAND_SECOND -> delta / 6f     // 1° = 1/6 s
+                            else -> 0f
+                        }
+                        if (secondsDelta != 0f) onDeltaState.value(secondsDelta)
                     }
-                    if (secondsDelta != 0f) onDeltaState.value(secondsDelta)
-                },
-            )
+                } finally {
+                    // Always reset, whether drag completed normally or was cancelled.
+                    draggingHand = HAND_NONE
+                }
+            }
         }
     } else {
         Modifier
@@ -409,18 +452,16 @@ private fun AnalogClock(
         drawClockFace()
         drawTicks()
         drawNumbers()
-        val hourSw   = if (draggingHand == HAND_HOUR)   14f * 1.6f else 14f
-        val minuteSw = if (draggingHand == HAND_MINUTE) 10f * 1.6f else 10f
-        val secondSw = if (draggingHand == HAND_SECOND) 4f  * 1.6f else 4f
+        // v3.6.5: stroke widths come from animated state (declared above) so the
+        // press-down "pop" is a smooth bouncy spring rather than a hard step.
         drawHand(angleDeg = hourAngle,   lengthFrac = 0.55f, strokeWidth = hourSw,   color = BlueyPalette.Bandit)
         drawHand(angleDeg = minuteAngle, lengthFrac = 0.78f, strokeWidth = minuteSw, color = BlueyPalette.Bluey)
         if (state.showSeconds) {
             drawHand(angleDeg = secondAngle, lengthFrac = 0.86f, strokeWidth = secondSw, color = BlueyPalette.Chilli)
         }
         drawCenterPin()
-        if (state.mode == ClockMode.MANUAL) {
-            drawManualBadge()
-        }
+        // v3.6.5: MANUAL badge removed — the Mode segmented toggle already tells
+        // the user they're in manual mode; the badge looked ugly on the dial.
     }
 }
 
@@ -532,42 +573,6 @@ private fun DrawScope.drawNumbers() {
     }
 }
 
-private fun DrawScope.drawManualBadge() {
-    val cx = size.width / 2f
-    val cy = size.height / 2f
-    val r = size.minDimension / 2f
-    val badgeW = r * 0.42f
-    val badgeH = r * 0.12f
-    val left = cx - badgeW / 2f
-    val top = cy + r * 0.32f
-    val bottom = top + badgeH
-    drawIntoCanvasCompat { c ->
-        val rectPaint = android.graphics.Paint().apply {
-            color = android.graphics.Color.argb(
-                235,
-                (BlueyPalette.Bingo.red * 255).toInt(),
-                (BlueyPalette.Bingo.green * 255).toInt(),
-                (BlueyPalette.Bingo.blue * 255).toInt(),
-            )
-            isAntiAlias = true
-        }
-        val rectF = android.graphics.RectF(left, top, left + badgeW, bottom)
-        c.drawRoundRect(rectF, badgeH / 2f, badgeH / 2f, rectPaint)
-        val textPaint = android.graphics.Paint().apply {
-            color = android.graphics.Color.WHITE
-            textSize = badgeH * 0.66f
-            textAlign = android.graphics.Paint.Align.CENTER
-            isAntiAlias = true
-            typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
-            letterSpacing = 0.18f
-        }
-        val tx = cx
-        val fm = textPaint.fontMetrics
-        val ty = (top + bottom) / 2f - (fm.descent + fm.ascent) / 2f
-        c.drawText("MANUAL", tx, ty, textPaint)
-    }
-}
-
 private inline fun DrawScope.drawIntoCanvasCompat(block: (android.graphics.Canvas) -> Unit) {
     block(this.drawContext.canvas.nativeCanvas)
 }
@@ -606,6 +611,12 @@ private fun DrawScope.drawCenterPin() {
 
 @Composable
 private fun DigitalCard(state: ClockUiState, big: Boolean) {
+    // v3.6.5: TTS engine, scoped to this composition. shutdown() runs on dispose
+    // so we don't leak the TextToSpeech client between recompositions/screens.
+    val context = LocalContext.current
+    val tts = remember { TtsManager(context) }
+    DisposableEffect(Unit) { onDispose { tts.shutdown() } }
+
     // Auto-mode time source (only ticks when in AUTO).
     var nowMs by remember { mutableStateOf(System.currentTimeMillis()) }
     val isAuto = state.mode == ClockMode.AUTO
@@ -621,6 +632,12 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
     val periodText: String
     // Track whether period should be visible (only true in AUTO + 12h).
     val showPeriod: Boolean
+    // v3.6.5: parallel snapshot of h/m/s/isPm for TTS — same numbers the digits
+    // show, but kept as ints so TimeSpeech can format the natural sentence.
+    val speakH: Int
+    val speakM: Int
+    val speakS: Int
+    val speakIsPm: Boolean
     if (isAuto) {
         val cal = remember { Calendar.getInstance() }
         cal.timeInMillis = nowMs
@@ -646,6 +663,13 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
                 showPeriod = true
             }
         }
+        speakH = when (state.timeFormat) {
+            TimeFormat.H24 -> h
+            TimeFormat.H12 -> if (h % 12 == 0) 12 else h % 12
+        }
+        speakM = m
+        speakS = s
+        speakIsPm = state.timeFormat == TimeFormat.H12 && h >= 12
     } else {
         // Manual mode: derive from manualTotalSeconds; no AM/PM info from the dial.
         val total = ((state.manualTotalSeconds.toInt() % 43200) + 43200) % 43200
@@ -669,6 +693,13 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
                 showPeriod = true
             }
         }
+        speakH = when (state.timeFormat) {
+            TimeFormat.H24 -> h12raw
+            TimeFormat.H12 -> if (h12raw == 0) 12 else h12raw
+        }
+        speakM = m
+        speakS = s
+        speakIsPm = false // manual has no PM info
     }
 
     OutlinedCard(
@@ -696,72 +727,109 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
             ).value
         ),
     ) {
-        Column(
-            modifier = Modifier
-                .padding(
-                    // v3.6.4: small horizontal padding — the fixed card width
-                    // already includes breathing room around the text.
-                    horizontal = if (big) 16.dp else 12.dp,
-                    vertical = if (big) 22.dp else 16.dp,
-                )
-                // v3.6: bouncy spring on the card's interior height so the AM/PM
-                // collapse pops gently instead of snapping.
-                .animateContentSize(
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessMedium,
-                    ),
-                ),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = timeText,
-                fontSize = if (big) 80.sp else 56.sp,
-                fontWeight = FontWeight.Bold,
-                color = BlueyPalette.Ink,
-                // v3.6.1: drop letter-spacing — Fredoka is already chunky.
-                letterSpacing = 0.sp,
-                style = MaterialTheme.typography.displayLarge,
-                // v3.6.1: belt-and-suspenders — the readout must NEVER wrap.
-                maxLines = 1,
-                softWrap = false,
-                // v3.6.4: fixed-width card is back; explicit center alignment so
-                // the digits sit dead-center inside the card no matter what.
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            // AM/PM uses expandVertically/shrinkVertically so that BOTH the fade
-            // AND the vertical layout collapse are animated. Without these the
-            // height change snaps and the toggles below jump.
-            // v3.6: spring-based enter/exit for a tiny overshoot.
-            androidx.compose.animation.AnimatedVisibility(
-                visible = showPeriod && periodText.isNotEmpty(),
-                enter = fadeIn(animationSpec = tween(220)) +
-                        expandVertically(
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessMedium,
-                            ),
-                            expandFrom = Alignment.Top,
-                        ),
-                exit = fadeOut(animationSpec = tween(180)) +
-                       shrinkVertically(
-                           animationSpec = spring(
-                               dampingRatio = Spring.DampingRatioNoBouncy,
-                               stiffness = Spring.StiffnessMedium,
-                           ),
-                           shrinkTowards = Alignment.Top,
-                       ),
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = periodText,
-                        fontSize = if (big) 16.sp else 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = BlueyPalette.BlueyDeep,
+        // v3.6.5: Box overlays a speaker IconButton on top of the centered Column
+        // so the digits stay dead-center inside the card while the mic floats
+        // on the right edge. Tapping it speaks the currently-displayed time.
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        // v3.6.4: small horizontal padding — the fixed card width
+                        // already includes breathing room around the text.
+                        horizontal = if (big) 16.dp else 12.dp,
+                        vertical = if (big) 22.dp else 16.dp,
                     )
+                    // v3.6: bouncy spring on the card's interior height so the AM/PM
+                    // collapse pops gently instead of snapping.
+                    .animateContentSize(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioLowBouncy,
+                            stiffness = Spring.StiffnessMedium,
+                        ),
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = timeText,
+                    fontSize = if (big) 80.sp else 56.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = BlueyPalette.Ink,
+                    // v3.6.1: drop letter-spacing — Fredoka is already chunky.
+                    letterSpacing = 0.sp,
+                    style = MaterialTheme.typography.displayLarge,
+                    // v3.6.1: belt-and-suspenders — the readout must NEVER wrap.
+                    maxLines = 1,
+                    softWrap = false,
+                    // v3.6.4: fixed-width card is back; explicit center alignment so
+                    // the digits sit dead-center inside the card no matter what.
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                // AM/PM uses expandVertically/shrinkVertically so that BOTH the fade
+                // AND the vertical layout collapse are animated. Without these the
+                // height change snaps and the toggles below jump.
+                // v3.6: spring-based enter/exit for a tiny overshoot.
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = showPeriod && periodText.isNotEmpty(),
+                    enter = fadeIn(animationSpec = tween(220)) +
+                            expandVertically(
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioLowBouncy,
+                                    stiffness = Spring.StiffnessMedium,
+                                ),
+                                expandFrom = Alignment.Top,
+                            ),
+                    exit = fadeOut(animationSpec = tween(180)) +
+                           shrinkVertically(
+                               animationSpec = spring(
+                                   dampingRatio = Spring.DampingRatioNoBouncy,
+                                   stiffness = Spring.StiffnessMedium,
+                               ),
+                               shrinkTowards = Alignment.Top,
+                           ),
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = periodText,
+                            fontSize = if (big) 16.sp else 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = BlueyPalette.BlueyDeep,
+                        )
+                    }
                 }
+            }
+            // v3.6.5: TTS speaker button. Floats on the right edge of the card,
+            // small enough to not overlap the centered digits. Uses VolumeUp
+            // (speaker) rather than Mic because we're playing audio, not recording.
+            FilledIconButton(
+                onClick = {
+                    val sentence = TimeSpeech.build(
+                        hour = speakH,
+                        minute = speakM,
+                        second = speakS,
+                        includeSeconds = state.showSeconds,
+                        format = state.timeFormat,
+                        isPm = speakIsPm,
+                        language = state.language,
+                    )
+                    tts.speak(sentence, state.language.toLocale())
+                },
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 4.dp)
+                    .size(if (big) 44.dp else 36.dp),
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = BlueyPalette.Bluey.copy(alpha = 0.15f),
+                    contentColor = BlueyPalette.Bluey,
+                ),
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                    contentDescription = if (state.language == Language.ZH) "播报时间" else "Speak time",
+                    modifier = Modifier.size(if (big) 24.dp else 20.dp),
+                )
             }
         }
     }

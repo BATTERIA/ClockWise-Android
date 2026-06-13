@@ -13,8 +13,8 @@ android {
         applicationId = "com.batteria.clockwise"
         minSdk = 26
         targetSdk = 34
-        versionCode = 36
-        versionName = "3.6.0"
+        versionCode = 365
+        versionName = "3.6.5"
     }
 
     buildFeatures {
@@ -49,6 +49,8 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material3:material3-window-size-class")
+    // v3.6.5: needed for Icons.Filled.VolumeUp on the new TTS speaker button.
+    implementation("androidx.compose.material:material-icons-extended")
 
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.7")

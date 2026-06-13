@@ -51,7 +51,7 @@
     hourHit:        document.getElementById('hourHit'),
     minuteHit:      document.getElementById('minuteHit'),
     secondHit:      document.getElementById('secondHit'),
-    manualBadge:    document.getElementById('manualBadge'),
+    // v3.6.5: manualBadge removed from the SVG — entry kept absent so JS doesn't reference it.
     ticks:          document.getElementById('ticks'),
     numbers:        document.getElementById('numbers'),
     segments:       document.querySelectorAll('.segment'),
@@ -61,6 +61,7 @@
     labelSecOff:    document.getElementById('labelSecOff'),
     labelModeAuto:  document.getElementById('labelModeAuto'),
     labelModeManual:document.getElementById('labelModeManual'),
+    speakBtn:       document.getElementById('speakBtn'),
   };
 
   // ---- Clock face geometry (viewBox 220x220, center 110,110) ----
@@ -254,7 +255,7 @@
     const isManual = state.mode === 'manual';
     document.body.classList.toggle('manual-mode', isManual);
     if (el.device) el.device.classList.toggle('manual-mode', isManual);
-    if (el.manualBadge) el.manualBadge.style.display = isManual ? '' : 'none';
+    // v3.6.5: removed the manualBadge show/hide — the segmented Mode toggle already conveys this.
 
     if (isManual) {
       // Seed manualTotalSeconds from current real time.
@@ -399,6 +400,73 @@
     document.addEventListener('pointercancel', endDrag);
   }
 
+  // ---- v3.6.5: TTS speaker button ----
+  // Builds a natural EN/ZH sentence from the currently displayed digital time
+  // and feeds it to window.speechSynthesis. Mirrors the Android TimeSpeech helper.
+  const ONES = ['zero','one','two','three','four','five','six','seven','eight','nine',
+                'ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+  function twoDigitWords(n) {
+    if (n < 20) return ONES[n];
+    const tens = ['twenty','thirty','forty','fifty'][Math.floor(n / 10) - 2];
+    const rest = n % 10;
+    return rest === 0 ? tens : tens + '-' + ONES[rest];
+  }
+  function buildSentenceEn(h, m, s, withS, fmt, isPm) {
+    let hourWord;
+    if (fmt === '24')      hourWord = String(h);
+    else if (h === 0)      hourWord = '12';
+    else                   hourWord = String(h);
+    let out = "It's " + hourWord;
+    if (m === 0 && !withS) {
+      out += " o'clock";
+    } else {
+      out += ' ' + twoDigitWords(m);
+      if (withS) out += ' and ' + twoDigitWords(s) + ' seconds';
+    }
+    if (fmt === '12') out += isPm ? ' PM' : ' AM';
+    return out;
+  }
+  function buildSentenceZh(h, m, s, withS, fmt, isPm) {
+    const prefix = fmt === '12' ? (isPm ? '下午' : '上午') : '';
+    let hourWord;
+    if (fmt === '24')         hourWord = h + '点';
+    else                      hourWord = (h === 0 ? 12 : h) + '点';
+    let rest;
+    if (m === 0 && !withS)    rest = '整';
+    else if (!withS)          rest = m + '分';
+    else                      rest = m + '分' + s + '秒';
+    return '现在是' + prefix + hourWord + rest;
+  }
+  function speakCurrentTime() {
+    if (!('speechSynthesis' in window)) return;
+    // Read what the digital readout actually shows (works in both auto and manual).
+    const txt = (el.digitalTime && el.digitalTime.textContent) || '';
+    // Parse "HH:MM" or "HH:MM:SS". Always take ints.
+    const parts = txt.split(':').map(p => parseInt(p, 10) || 0);
+    const h = parts[0] || 0;
+    const m = parts[1] || 0;
+    const s = parts.length > 2 ? parts[2] : 0;
+    const withS = state.showSeconds === '1';
+    const fmt   = state.format; // '12' | '24'
+    // isPm: only meaningful in auto+12h. In manual mode we don't know PM.
+    let isPm = false;
+    if (state.mode === 'auto' && fmt === '12') {
+      isPm = (new Date()).getHours() >= 12;
+    }
+    const sentence = state.lang === 'zh'
+      ? buildSentenceZh(h, m, s, withS, fmt, isPm)
+      : buildSentenceEn(h, m, s, withS, fmt, isPm);
+    const u = new SpeechSynthesisUtterance(sentence);
+    u.lang = state.lang === 'zh' ? 'zh-CN' : 'en-US';
+    try { window.speechSynthesis.cancel(); } catch (_) { /* ignore */ }
+    window.speechSynthesis.speak(u);
+  }
+  function wireSpeak() {
+    if (el.speakBtn) {
+      el.speakBtn.addEventListener('click', speakCurrentTime);
+    }
+  }
+
   // ---- Device picker ----
   const DEVICES = ['phone-portrait', 'phone-landscape', 'tablet-portrait', 'tablet-landscape'];
   function applyDevice() {
@@ -454,6 +522,7 @@
   refreshSegments();
   wireDevicePicker();
   wireDrag();
+  wireSpeak();
   applyDevice();
   applyLang();
   applyShowSeconds();

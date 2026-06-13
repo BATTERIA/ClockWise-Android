@@ -269,18 +269,7 @@ html, body {
 .manual-mode .face-bg {
   fill: #FFF1D9; /* slight warm hue shift to signal manual */
 }
-.manual-badge rect {
-  fill: var(--cw-bingo);
-  opacity: 0.92;
-}
-.manual-badge text {
-  fill: white;
-  font-family: var(--font-ui);
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  dominant-baseline: central;
-}
+/* v3.6.5: .manual-badge styles removed — the badge itself was deleted from index.html. */
 
 /* Hide second hand entirely when 'hide seconds' is selected */
 .hide-seconds .hand-second,
@@ -349,12 +338,40 @@ html, body {
      seconds modes with a gentle overshoot bounce (v3.6). */
   transition: transform 220ms var(--ease-soft),
               width 360ms var(--ease-bounce);
+  /* v3.6.5: positioning context for the speak button overlay. */
+  position: relative;
 }
 /* When seconds are hidden, snap to the narrower width. The class is toggled
    on .device (and body) by applyShowSeconds() in app.js. */
 /* v3.6.4: hide-seconds shrinks the card to the narrower fixed width. */
 .hide-seconds .digital-card { width: var(--w-without-seconds); }
 .digital-card:hover { transform: translateY(-2px); }
+
+/* v3.6.5: floating speaker button on the digital card. Mirrors the Android
+   FilledIconButton: small, right-aligned, bluey tint, doesn't disturb the
+   centered digits. */
+.speak-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(79, 179, 255, 0.15); /* var(--cw-bluey) @ 15% */
+  color: var(--cw-bluey);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  transition: transform 160ms var(--ease-bounce), background 180ms ease;
+}
+.speak-btn:hover  { background: rgba(79, 179, 255, 0.25); }
+.speak-btn:active { transform: translateY(-50%) scale(0.92); }
+.speak-btn svg    { display: block; }
 
 .digital-time {
   /* v3.6: Fredoka Bold for the time digits — cute & chunky.

@@ -77,11 +77,7 @@
                 <line id="secondHit"  class="hand-hit" x1="110" y1="110" x2="110" y2="30" />
                 <line id="secondHand" class="hand hand-second" x1="110" y1="110" x2="110" y2="30" />
 
-                <!-- Manual mode indicator badge -->
-                <g id="manualBadge" class="manual-badge" style="display:none;">
-                  <rect x="82" y="148" width="56" height="16" rx="8" />
-                  <text x="110" y="160" text-anchor="middle">MANUAL</text>
-                </g>
+                <!-- v3.6.5: MANUAL badge removed — the Mode segmented toggle already conveys manual state. -->
 
                 <!-- Center pin (bandit blue ring + chilli red dot) + v3.6 highlight for 3D ball feel -->
                 <circle cx="110" cy="110" r="8.5" class="pin-outer" />
@@ -97,6 +93,16 @@
             <div class="digital-card" id="digitalCard">
               <div class="digital-time" id="digitalTime">06:30</div>
               <div class="digital-period" id="digitalPeriod">AM</div>
+              <!-- v3.6.5: tap to speak the displayed time via SpeechSynthesis (Web Speech API).
+                   Mirrors the Android FilledIconButton on the digital card. -->
+              <button class="speak-btn" id="speakBtn" type="button"
+                      aria-label="Speak time" title="Speak time">
+                <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"
+                     fill="currentColor">
+                  <!-- Material 'volume_up' (Filled) -->
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+                </svg>
+              </button>
             </div>
 
             <!-- 12h / 24h segmented buttons -->

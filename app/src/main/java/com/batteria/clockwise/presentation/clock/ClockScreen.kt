@@ -241,11 +241,15 @@ private fun LandscapeLayout(
             .fillMaxSize()
             .padding(horizontal = if (isTablet) 48.dp else 24.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(if (isTablet) 48.dp else 24.dp),
+        horizontalArrangement = Arrangement.spacedBy(if (isTablet) 48.dp else 20.dp),
     ) {
         Box(
             modifier = Modifier
-                .weight(1.1f)
+                // v3.6.7: was 1.1f — give the right column (2x2 toggle grid)
+                // more room. Toggles are 200dp / 260dp wide; two side by side
+                // with a gap need ~410dp / ~536dp. Clock keeps a square aspect
+                // ratio so it just shrinks to the available height.
+                .weight(0.9f)
                 .fillMaxHeight(),
             contentAlignment = Alignment.Center,
         ) {
@@ -260,7 +264,9 @@ private fun LandscapeLayout(
 
         Column(
             modifier = Modifier
-                .weight(1f)
+                // v3.6.7: was 1f — expand to fit the 2x2 toggle grid (~410dp
+                // wide on phone / ~536dp on tablet).
+                .weight(1.2f)
                 .fillMaxHeight()
                 // v3.6: same bouncy spring for landscape so toggles glide
                 // with overshoot when AM/PM appears.
@@ -275,31 +281,44 @@ private fun LandscapeLayout(
         ) {
             DigitalCard(state = state, big = isTablet)
             Spacer(modifier = Modifier.height(if (isTablet) 28.dp else 18.dp))
-            FormatToggle(
-                value = state.timeFormat,
-                onChange = onTimeFormatChange,
-                big = isTablet,
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            LanguageToggle(
-                value = state.language,
-                onChange = onLanguageChange,
-                big = isTablet,
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            ShowSecondsToggle(
-                value = state.showSeconds,
-                onChange = onShowSecondsChange,
-                language = state.language,
-                big = isTablet,
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            ModeToggle(
-                value = state.mode,
-                onChange = onModeChange,
-                language = state.language,
-                big = isTablet,
-            )
+            // v3.6.7: landscape — pack the 4 toggles into a 2x2 grid so they
+            // all fit on phone-landscape (~360dp tall) without scrolling. The
+            // golden-ratio Column layout was overflowing once the Mode toggle
+            // was added in v3.2; Master spotted that the bottom toggle was
+            // clipped. A grid is better than scrolling here: kids shouldn't
+            // need to discover that there's hidden UI, and landscape has
+            // plenty of width to spend.
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(if (isTablet) 12.dp else 8.dp),
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(if (isTablet) 16.dp else 10.dp)) {
+                    FormatToggle(
+                        value = state.timeFormat,
+                        onChange = onTimeFormatChange,
+                        big = isTablet,
+                    )
+                    LanguageToggle(
+                        value = state.language,
+                        onChange = onLanguageChange,
+                        big = isTablet,
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(if (isTablet) 16.dp else 10.dp)) {
+                    ShowSecondsToggle(
+                        value = state.showSeconds,
+                        onChange = onShowSecondsChange,
+                        language = state.language,
+                        big = isTablet,
+                    )
+                    ModeToggle(
+                        value = state.mode,
+                        onChange = onModeChange,
+                        language = state.language,
+                        big = isTablet,
+                    )
+                }
+            }
         }
     }
 }

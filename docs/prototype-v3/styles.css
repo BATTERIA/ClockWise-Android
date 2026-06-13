@@ -618,6 +618,27 @@ html, body {
 /* In landscape, the info-region uses align-items: stretch so segmented buttons
    span the column. */
 
+/* v3.6.7: landscape — lay the 4 segmented toggles out in a 2x2 grid so the
+   bottom toggle isn't clipped on phone-landscape (~412px tall). Better than
+   scrolling: kids shouldn't have to discover hidden UI, and landscape has
+   plenty of horizontal room to spend. The digital card stays full-width
+   above the grid. */
+.device.phone-landscape .info-region,
+.device.tablet-landscape .info-region {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: min-content;
+  gap: 10px 12px;
+  align-content: center;
+  justify-items: center;
+}
+.device.phone-landscape .info-region .digital-card,
+.device.tablet-landscape .info-region .digital-card {
+  grid-column: 1 / -1; /* digital card spans the full width */
+  justify-self: center;
+}
+.device.tablet-landscape .info-region { gap: 14px 18px; }
+
 /* --- Tablet portrait: portrait flow but bigger clock + bigger digital --- */
 .device.tablet-portrait .content {
   gap: 22px;

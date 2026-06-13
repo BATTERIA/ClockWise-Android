@@ -60,6 +60,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -679,13 +680,18 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
         // v3.6.1: previous bumps weren't enough — Fredoka tabular at 56sp/80sp
         // is wider than estimated. Re-measured with breathing room so PM never
         // pushes the readout into a wrap.
+        // v3.6.2: empirical re-measurement — Fredoka 700 "12:34:56 PM" at 56sp
+        // actually renders ~318dp wide; the v3.6.1 widths were still too tight
+        // (text was overflowing left and looking left-aligned). Phone digits
+        // dropped slightly (56→52) to keep the card from blowing past the
+        // device frame, and widths bumped to genuinely fit the readout.
         modifier = Modifier.padding(horizontal = 4.dp).width(
             animateDpAsState(
                 targetValue = when {
-                    big && state.showSeconds  -> 440.dp
-                    big && !state.showSeconds -> 320.dp
+                    big && state.showSeconds  -> 520.dp
+                    big && !state.showSeconds -> 420.dp
                     !big && state.showSeconds -> 320.dp
-                    else                      -> 230.dp
+                    else                      -> 260.dp
                 },
                 animationSpec = spring(
                     dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -713,7 +719,9 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
         ) {
             Text(
                 text = timeText,
-                fontSize = if (big) 80.sp else 56.sp,
+                // v3.6.2: shrink phone digits from 56→52 so the readout fits
+                // the card without overflow; tablet stays at 80 (room to spare).
+                fontSize = if (big) 80.sp else 52.sp,
                 fontWeight = FontWeight.Bold,
                 color = BlueyPalette.Ink,
                 // v3.6.1: drop letter-spacing — Fredoka is already chunky and the
@@ -723,6 +731,11 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
                 // v3.6.1: belt-and-suspenders — the readout must NEVER wrap.
                 maxLines = 1,
                 softWrap = false,
+                // v3.6.2: explicit center alignment. With softWrap=false the Text
+                // was hugging the start edge inside the centered Column — force
+                // the text itself to center within a full-width frame.
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
             )
             // AM/PM uses expandVertically/shrinkVertically so that BOTH the fade
             // AND the vertical layout collapse are animated. Without these the

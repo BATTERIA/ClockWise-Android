@@ -327,12 +327,13 @@ html, body {
   /* v3.5: two fixed widths driven by .hide-seconds. Width animates between them
      smoothly so the card doesn't snap when toggling Show s / Hide s.
      Widths are sized to comfortably fit "23:59:59 PM" / "23:59 PM" at the
-     current digital-time font (56px tabular Fredoka).
-     v3.6.1: Fredoka 700 in tabular mode at 56px is much wider than Roboto Mono.
-     Empirically measured: "12:34:56" ≈ 270px alone. Bumped widths so PM never
-     pushes the layout into wrap. */
+     current digital-time font (52px tabular Fredoka).
+     v3.6.1: Fredoka 700 in tabular mode is wider than Roboto Mono.
+     v3.6.2: empirically measured Fredoka 700 "12:34:56 PM" ≈ 318px at 56px /
+     273px at 48px. Phone digits dropped from 56→52px so the card stays
+     screen-friendly, with widths sized to actually contain the readout. */
   --w-with-seconds: 320px;
-  --w-without-seconds: 230px;
+  --w-without-seconds: 240px;
   width: var(--w-with-seconds);
   box-sizing: border-box;
   background: var(--cw-bg-elevated);
@@ -358,9 +359,10 @@ html, body {
 .digital-card:hover { transform: translateY(-2px); }
 
 .digital-time {
-  /* v3.6: Fredoka Bold for the time digits — cute & chunky */
+  /* v3.6: Fredoka Bold for the time digits — cute & chunky.
+     v3.6.2: phone digits dropped 56→52px to keep the card from overflowing. */
   font-family: var(--font-display);
-  font-size: 56px;
+  font-size: 52px;
   font-weight: 700;
   line-height: 1;
   /* v3.6.1: kill letter-spacing — Fredoka is already chunky and the spacing
@@ -579,23 +581,23 @@ html, body {
 
 /* tablet landscape — bigger clock + bigger digital */
 .device.tablet-landscape .clock-wrap { max-width: 460px; }
-.device.tablet-landscape .digital-time { font-size: 80px; }
+.device.tablet-landscape .digital-time { font-size: 76px; }
 .device.tablet-landscape .digital-card {
   padding: 28px 40px 22px;
-  /* Bigger font (80px) needs wider card — override the two width vars.
-     v3.6.1: bumped to fit Fredoka tabular without wrap. */
-  --w-with-seconds: 440px;
-  --w-without-seconds: 320px;
+  /* Bigger font (76px) needs wider card — override the two width vars.
+     v3.6.2: measured against Fredoka tabular. */
+  --w-with-seconds: 500px;
+  --w-without-seconds: 380px;
 }
 .device.tablet-landscape .segmented { max-width: 300px; height: 48px; border-radius: 24px; }
 
 /* phone landscape — tighter spacing */
-.device.phone-landscape .digital-time { font-size: 48px; }
+.device.phone-landscape .digital-time { font-size: 44px; }
 .device.phone-landscape .digital-card {
   padding: 14px 24px 10px;
-  /* Smaller font (48px) → narrower card. v3.6.1: bumped for Fredoka tabular. */
-  --w-with-seconds: 270px;
-  --w-without-seconds: 200px;
+  /* Smaller font (44px) → narrower card. v3.6.2: measured against Fredoka. */
+  --w-with-seconds: 280px;
+  --w-without-seconds: 210px;
 }
 
 /* In landscape, the info-region uses align-items: stretch so segmented buttons
@@ -607,12 +609,12 @@ html, body {
   padding: 28px 48px 40px;
 }
 .device.tablet-portrait .clock-wrap { max-width: 460px; width: 82%; }
-.device.tablet-portrait .digital-time { font-size: 80px; }
+.device.tablet-portrait .digital-time { font-size: 76px; }
 .device.tablet-portrait .digital-card {
   padding: 26px 40px 20px;
-  /* Match tablet-landscape sizing for 80px font. v3.6.1: bumped for Fredoka. */
-  --w-with-seconds: 440px;
-  --w-without-seconds: 320px;
+  /* Match tablet-landscape sizing. v3.6.2: measured against Fredoka. */
+  --w-with-seconds: 500px;
+  --w-without-seconds: 380px;
 }
 .device.tablet-portrait .segmented { max-width: 300px; height: 48px; border-radius: 24px; }
 

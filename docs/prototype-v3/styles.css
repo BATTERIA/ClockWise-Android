@@ -328,9 +328,11 @@ html, body {
      smoothly so the card doesn't snap when toggling Show s / Hide s.
      Widths are sized to comfortably fit "23:59:59 PM" / "23:59 PM" at the
      current digital-time font (56px tabular Fredoka).
-     v3.6: Fredoka is wider than Roboto Mono → nudge widths up. */
-  --w-with-seconds: 280px;
-  --w-without-seconds: 215px;
+     v3.6.1: Fredoka 700 in tabular mode at 56px is much wider than Roboto Mono.
+     Empirically measured: "12:34:56" ≈ 270px alone. Bumped widths so PM never
+     pushes the layout into wrap. */
+  --w-with-seconds: 320px;
+  --w-without-seconds: 230px;
   width: var(--w-with-seconds);
   box-sizing: border-box;
   background: var(--cw-bg-elevated);
@@ -361,12 +363,17 @@ html, body {
   font-size: 56px;
   font-weight: 700;
   line-height: 1;
-  letter-spacing: 0.02em;
+  /* v3.6.1: kill letter-spacing — Fredoka is already chunky and the spacing
+     was eating extra horizontal room, contributing to the wrap. */
+  letter-spacing: 0;
   color: var(--cw-ink);
   /* tabular-nums => fixed-advance digits, so 06:30 and 18:30 occupy the
      exact same width (no horizontal jitter when format flips). */
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
+  /* v3.6.1: belt-and-suspenders. Even if the parent ever shrinks below
+     content width, we never want a line wrap on the digital readout. */
+  white-space: nowrap;
 }
 /* Period slot reserves vertical space at all times so that toggling 12h <-> 24h
    only fades the badge — surrounding rows below the digital card do not jump. */
@@ -575,9 +582,10 @@ html, body {
 .device.tablet-landscape .digital-time { font-size: 80px; }
 .device.tablet-landscape .digital-card {
   padding: 28px 40px 22px;
-  /* Bigger font (80px) needs wider card — override the two width vars. */
-  --w-with-seconds: 360px;
-  --w-without-seconds: 270px;
+  /* Bigger font (80px) needs wider card — override the two width vars.
+     v3.6.1: bumped to fit Fredoka tabular without wrap. */
+  --w-with-seconds: 440px;
+  --w-without-seconds: 320px;
 }
 .device.tablet-landscape .segmented { max-width: 300px; height: 48px; border-radius: 24px; }
 
@@ -585,9 +593,9 @@ html, body {
 .device.phone-landscape .digital-time { font-size: 48px; }
 .device.phone-landscape .digital-card {
   padding: 14px 24px 10px;
-  /* Smaller font (48px) → narrower card. */
-  --w-with-seconds: 230px;
-  --w-without-seconds: 175px;
+  /* Smaller font (48px) → narrower card. v3.6.1: bumped for Fredoka tabular. */
+  --w-with-seconds: 270px;
+  --w-without-seconds: 200px;
 }
 
 /* In landscape, the info-region uses align-items: stretch so segmented buttons
@@ -602,9 +610,9 @@ html, body {
 .device.tablet-portrait .digital-time { font-size: 80px; }
 .device.tablet-portrait .digital-card {
   padding: 26px 40px 20px;
-  /* Match tablet-landscape sizing for 80px font. */
-  --w-with-seconds: 360px;
-  --w-without-seconds: 270px;
+  /* Match tablet-landscape sizing for 80px font. v3.6.1: bumped for Fredoka. */
+  --w-with-seconds: 440px;
+  --w-without-seconds: 320px;
 }
 .device.tablet-portrait .segmented { max-width: 300px; height: 48px; border-radius: 24px; }
 

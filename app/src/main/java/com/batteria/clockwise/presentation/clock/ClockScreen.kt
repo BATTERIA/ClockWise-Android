@@ -676,13 +676,16 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
         // v3.6: bouncy spring with a medium overshoot for kid-friendly delight.
         // Tablet (big=true) uses 80sp digits → needs noticeably wider widths.
         // v3.6: Fredoka is a bit wider than the prior sans-serif, so widths nudged up.
+        // v3.6.1: previous bumps weren't enough — Fredoka tabular at 56sp/80sp
+        // is wider than estimated. Re-measured with breathing room so PM never
+        // pushes the readout into a wrap.
         modifier = Modifier.padding(horizontal = 4.dp).width(
             animateDpAsState(
                 targetValue = when {
-                    big && state.showSeconds  -> 340.dp
-                    big && !state.showSeconds -> 260.dp
-                    !big && state.showSeconds -> 260.dp
-                    else                      -> 200.dp
+                    big && state.showSeconds  -> 440.dp
+                    big && !state.showSeconds -> 320.dp
+                    !big && state.showSeconds -> 320.dp
+                    else                      -> 230.dp
                 },
                 animationSpec = spring(
                     dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -713,9 +716,13 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
                 fontSize = if (big) 80.sp else 56.sp,
                 fontWeight = FontWeight.Bold,
                 color = BlueyPalette.Ink,
-                // v3.6: Fredoka looks best with a touch of positive letter-spacing
-                letterSpacing = 0.5.sp,
+                // v3.6.1: drop letter-spacing — Fredoka is already chunky and the
+                // extra spacing was eating horizontal room and contributing to wraps.
+                letterSpacing = 0.sp,
                 style = MaterialTheme.typography.displayLarge,
+                // v3.6.1: belt-and-suspenders — the readout must NEVER wrap.
+                maxLines = 1,
+                softWrap = false,
             )
             // AM/PM uses expandVertically/shrinkVertically so that BOTH the fade
             // AND the vertical layout collapse are animated. Without these the

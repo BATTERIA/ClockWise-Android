@@ -672,20 +672,36 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
     }
 
     OutlinedCard(
-        // v3.6.3: drop the fixed-width approach entirely. The card now wraps its
-        // content, padding kept small, and the existing animateContentSize on
-        // the inner Column gives a smooth (bouncy) width transition when
-        // toggling Show s / Hide s. Text centers naturally inside a wrap-content
-        // Card — no fillMaxWidth or manual textAlign needed.
-        modifier = Modifier.padding(horizontal = 4.dp),
+        // v3.6.4: back to fixed widths (Master prefers the stable visual), but
+        // sized to actually contain Fredoka 700 tabular at 56sp/80sp.
+        // Empirical measurements (see /tmp/measure.js):
+        //   56sp "12:34:56 PM" ≈ 318dp
+        //   80sp "12:34:56 PM" ≈ 454dp
+        // Phone widths capped to stay within ~360dp device frames; tablet wider.
+        // Two widths (with-seconds / without-seconds) animated by a bouncy
+        // spring give the candy-soft Q-pop when Master toggles Show s.
+        modifier = Modifier.padding(horizontal = 4.dp).width(
+            animateDpAsState(
+                targetValue = when {
+                    big && state.showSeconds  -> 500.dp
+                    big && !state.showSeconds -> 400.dp
+                    !big && state.showSeconds -> 348.dp
+                    else                      -> 268.dp
+                },
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMediumLow,
+                ),
+                label = "digitalCardWidth",
+            ).value
+        ),
     ) {
         Column(
             modifier = Modifier
                 .padding(
-                    // v3.6.3: tighter horizontal padding so the wrap-content card
-                    // doesn't grow huge around long readouts. Kid-friendly chunky
-                    // but not bloated.
-                    horizontal = if (big) 24.dp else 18.dp,
+                    // v3.6.4: small horizontal padding — the fixed card width
+                    // already includes breathing room around the text.
+                    horizontal = if (big) 16.dp else 12.dp,
                     vertical = if (big) 22.dp else 16.dp,
                 )
                 // v3.6: bouncy spring on the card's interior height so the AM/PM
@@ -700,22 +716,19 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
         ) {
             Text(
                 text = timeText,
-                // v3.6.3: with a wrap-content card we can go back to the full
-                // 56sp on phone and 80sp on tablet — no risk of overflow since
-                // the card grows to match the text.
                 fontSize = if (big) 80.sp else 56.sp,
                 fontWeight = FontWeight.Bold,
                 color = BlueyPalette.Ink,
-                // v3.6.1: drop letter-spacing — Fredoka is already chunky and the
-                // extra spacing was eating horizontal room and contributing to wraps.
+                // v3.6.1: drop letter-spacing — Fredoka is already chunky.
                 letterSpacing = 0.sp,
                 style = MaterialTheme.typography.displayLarge,
                 // v3.6.1: belt-and-suspenders — the readout must NEVER wrap.
                 maxLines = 1,
                 softWrap = false,
-                // v3.6.3: no fillMaxWidth / textAlign needed — a wrap-content
-                // Card sized to text + the parent Column's CenterHorizontally
-                // already centers the readout naturally.
+                // v3.6.4: fixed-width card is back; explicit center alignment so
+                // the digits sit dead-center inside the card no matter what.
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
             )
             // AM/PM uses expandVertically/shrinkVertically so that BOTH the fade
             // AND the vertical layout collapse are animated. Without these the

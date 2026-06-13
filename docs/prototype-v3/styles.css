@@ -1,5 +1,6 @@
 /* ============================================================
-   ClockWise v3 — Bluey palette, cream bg, golden-ratio layout
+   ClockWise v3.6 — Bluey palette, kid-friendly Q-bouncy makeover
+   Cute Fredoka font + soft layered shadows + springy easings
    ============================================================ */
 
 :root {
@@ -31,11 +32,26 @@
   --cw-ink-soft:     #4A6B8A;
   --cw-outline:      #C8B89A;   /* warm beige */
 
+  /* --- v3.6 font stacks --- */
+  --font-display: 'Fredoka', 'LXGW WenKai Screen', 'Nunito', system-ui, sans-serif;
+  --font-ui:      'Fredoka', 'LXGW WenKai Screen', 'Nunito', 'Roboto Flex', system-ui, sans-serif;
+  --font-mono:    'Fredoka', 'Roboto Mono', 'LXGW WenKai Screen', monospace;
+
+  /* --- v3.6 springy easings (kid-friendly overshoot) --- */
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);  /* gentle overshoot */
+  --ease-soft:   cubic-bezier(0.4, 1.4, 0.6, 1);     /* soft pop */
+  --ease-pop:    cubic-bezier(0.2, 1.8, 0.3, 1);     /* punchier bounce */
+
   /* --- Stage / device --- */
   --backdrop:        #EBE3D2;
   --device-bezel:    #1E3A52;
   --shadow-soft:     0 4px 14px rgba(30, 58, 82, 0.10), 0 1px 3px rgba(30, 58, 82, 0.08);
   --shadow-elev:     0 20px 50px rgba(30, 58, 82, 0.22), 0 4px 12px rgba(30, 58, 82, 0.10);
+  /* v3.6 layered candy shadow */
+  --shadow-candy:
+    0 1px 2px rgba(45, 35, 90, 0.06),
+    0 4px 12px rgba(45, 35, 90, 0.08),
+    0 12px 32px rgba(45, 35, 90, 0.06);
 
   /* Default = Pixel 7 portrait */
   --device-w: 412px;
@@ -49,8 +65,9 @@
 html, body {
   margin: 0;
   padding: 0;
-  font-family: "Nunito", "Fredoka", system-ui, -apple-system, sans-serif;
+  font-family: var(--font-ui);
   color: var(--cw-ink);
+  /* v3.6: subtle warm gradient body backdrop (already had one — preserved) */
   background:
     radial-gradient(1200px 600px at 50% -10%, #FCEFCF 0%, transparent 60%),
     var(--backdrop);
@@ -78,7 +95,11 @@ html, body {
   padding: 12px;
   box-shadow: var(--shadow-elev);
   flex-shrink: 0;
-  transition: width 0.35s ease, height 0.35s ease, border-radius 0.35s ease;
+  /* v3.6: bouncy device-frame resize when switching device picker */
+  transition:
+    width 420ms var(--ease-bounce),
+    height 420ms var(--ease-bounce),
+    border-radius 420ms var(--ease-bounce);
 }
 
 .screen {
@@ -105,6 +126,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  font-family: var(--font-ui);
   font-size: 13px;
   font-weight: 700;
   color: var(--cw-ink);
@@ -176,7 +198,8 @@ html, body {
   filter: blur(2px);
 }
 .face-bg {
-  fill: var(--cw-bg-elevated);
+  /* v3.6: candy radial highlight from top for soft 3D feel */
+  fill: url(#faceCandyGradient);
 }
 .face-ring {
   fill: none;
@@ -200,12 +223,13 @@ html, body {
   stroke-linecap: round;
 }
 
-/* numbers 1-12 */
+/* numbers 1-12 — Fredoka for rounded kid-friendly numerals */
 .numbers text {
   fill: var(--cw-ink);
-  font-family: "Fredoka", "Nunito", sans-serif;
-  font-size: 18px;
+  font-family: var(--font-display);
+  font-size: 19px;
   font-weight: 600;
+  letter-spacing: 0.02em;
   text-anchor: middle;
   dominant-baseline: central;
 }
@@ -251,9 +275,9 @@ html, body {
 }
 .manual-badge text {
   fill: white;
-  font-family: "Nunito", sans-serif;
+  font-family: var(--font-ui);
   font-size: 8px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 1.2px;
   dominant-baseline: central;
 }
@@ -264,15 +288,16 @@ html, body {
   display: none !important;
 }
 .hand-hour {
-  stroke: var(--cw-bandit);
+  /* v3.6: candy gradient — lighter top → deeper blue, gives subtle 3D pop */
+  stroke: url(#handHourGradient);
   stroke-width: 7;
-  transition: stroke-width 150ms ease;
+  transition: stroke-width 220ms var(--ease-bounce);
 }
 .hand-hour.dragging { stroke-width: 11.2; }
 .hand-minute {
-  stroke: var(--cw-bluey);
+  stroke: url(#handMinuteGradient);
   stroke-width: 5;
-  transition: stroke-width 150ms ease;
+  transition: stroke-width 220ms var(--ease-bounce);
 }
 .hand-minute.dragging { stroke-width: 8; }
 .hand-second {
@@ -292,45 +317,51 @@ html, body {
   transition: none;
 }
 
+/* v3.6: bigger center pin with top-left highlight for 3D ball feel */
 .pin-outer { fill: var(--cw-bandit); }
 .pin-inner { fill: var(--cw-chilli); }
+.pin-highlight { fill: rgba(255, 255, 255, 0.55); }
 
-/* ===== Digital clock card (M3 outlined) ===== */
+/* ===== Digital clock card (M3 outlined) — v3.6 candy-soft ===== */
 .digital-card {
   /* v3.5: two fixed widths driven by .hide-seconds. Width animates between them
      smoothly so the card doesn't snap when toggling Show s / Hide s.
      Widths are sized to comfortably fit "23:59:59 PM" / "23:59 PM" at the
-     current digital-time font (56px Roboto Mono, tabular-nums). */
-  --w-with-seconds: 260px;
-  --w-without-seconds: 200px;
+     current digital-time font (56px tabular Fredoka).
+     v3.6: Fredoka is wider than Roboto Mono → nudge widths up. */
+  --w-with-seconds: 280px;
+  --w-without-seconds: 215px;
   width: var(--w-with-seconds);
   box-sizing: border-box;
   background: var(--cw-bg-elevated);
   border: 2px solid var(--cw-outline);
-  border-radius: 20px;
+  /* v3.6: chunkier rounding (20 → 24) */
+  border-radius: 24px;
   padding: 18px 28px 14px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  box-shadow: var(--shadow-soft);
+  /* v3.6: layered candy shadow replaces the flat soft shadow */
+  box-shadow: var(--shadow-candy);
   /* Height stable via reserved period slot; width animates between the two
-     seconds modes. transform retained for the hover lift. */
-  transition: transform 0.2s ease,
-              width 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+     seconds modes with a gentle overshoot bounce (v3.6). */
+  transition: transform 220ms var(--ease-soft),
+              width 360ms var(--ease-bounce);
 }
 /* When seconds are hidden, snap to the narrower width. The class is toggled
    on .device (and body) by applyShowSeconds() in app.js. */
 .hide-seconds .digital-card { width: var(--w-without-seconds); }
-.digital-card:hover { transform: translateY(-1px); }
+.digital-card:hover { transform: translateY(-2px); }
 
 .digital-time {
-  font-family: "Roboto Mono", "Fredoka", monospace;
+  /* v3.6: Fredoka Bold for the time digits — cute & chunky */
+  font-family: var(--font-display);
   font-size: 56px;
   font-weight: 700;
   line-height: 1;
-  letter-spacing: -1px;
+  letter-spacing: 0.02em;
   color: var(--cw-ink);
   /* tabular-nums => fixed-advance digits, so 06:30 and 18:30 occupy the
      exact same width (no horizontal jitter when format flips). */
@@ -340,10 +371,10 @@ html, body {
 /* Period slot reserves vertical space at all times so that toggling 12h <-> 24h
    only fades the badge — surrounding rows below the digital card do not jump. */
 .digital-period {
-  font-family: "Nunito", sans-serif;
+  font-family: var(--font-display);
   font-size: 14px;
   line-height: 18px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--cw-bluey-deep);
   letter-spacing: 1.5px;
   height: 18px;          /* fixed reserved height — no collapse on hide */
@@ -352,7 +383,8 @@ html, body {
   text-transform: uppercase;
   opacity: 1;
   transform: translateY(0) scale(1);
-  transition: opacity 220ms ease, transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* v3.6: bouncy AM/PM appearance */
+  transition: opacity 220ms ease, transform 320ms var(--ease-bounce);
   transform-origin: center;
   will-change: opacity, transform;
 }
@@ -364,25 +396,30 @@ html, body {
      segmented toggles below don't snap upward. */
 }
 
-/* ===== Segmented buttons (M3) ===== */
+/* ===== Segmented buttons (M3) — v3.6 pill-bouncy ===== */
 .segmented {
   display: inline-flex;
   width: 100%;
   max-width: 240px;
-  height: 40px;
-  border-radius: 20px;
+  height: 44px;
+  /* v3.6: full pill (999px) for unmistakably round shape */
+  border-radius: 999px;
   border: 1.5px solid var(--cw-outline);
   overflow: hidden;
   background: var(--cw-bg-elevated);
+  /* v3.6: subtle soft drop so segments float above the cream */
+  box-shadow:
+    0 1px 2px rgba(45, 35, 90, 0.04),
+    0 2px 6px rgba(45, 35, 90, 0.05);
 }
 .segment {
   flex: 1;
   border: none;
   background: transparent;
   color: var(--cw-ink-soft);
-  font-family: "Nunito", inherit;
+  font-family: var(--font-ui);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.1px;
   cursor: pointer;
   display: inline-flex;
@@ -390,8 +427,13 @@ html, body {
   justify-content: center;
   gap: 4px;
   padding: 0 12px;
-  transition: background-color 0.18s ease, color 0.18s ease;
+  /* v3.6: bouncy transitions for color + scale */
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    transform 280ms var(--ease-pop);
   position: relative;
+  transform: scale(1);
 }
 .segment + .segment {
   border-left: 1.5px solid var(--cw-outline);
@@ -404,16 +446,23 @@ html, body {
   width: 0;
   overflow: hidden;
   opacity: 0;
-  transition: width 0.22s ease, opacity 0.22s ease;
+  transition: width 280ms var(--ease-pop), opacity 220ms ease;
   color: var(--cw-bluey-deep);
 }
 .segment.selected {
   background: var(--cw-bluey-soft);
   color: var(--cw-bluey-deep);
+  /* v3.6: active pill bounces in slightly */
+  transform: scale(1.04);
 }
 .segment.selected .check {
   width: 18px;
   opacity: 1;
+}
+/* v3.6: click feedback — all segments scale down briefly on press */
+.segment:active {
+  transform: scale(0.95);
+  transition: transform 80ms ease;
 }
 
 /* ===== Segmented buttons (M3) ===== */
@@ -432,8 +481,9 @@ html, body {
 /* ===== Caption, device picker, footer ===== */
 .caption {
   margin: 4px 0 0;
+  font-family: var(--font-ui);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--cw-ink-soft);
   text-align: center;
 }
@@ -444,27 +494,33 @@ html, body {
   justify-content: center;
   background: var(--cw-bg-elevated);
   border: 1.5px solid var(--cw-outline);
-  border-radius: 18px;
-  padding: 4px;
+  border-radius: 999px;     /* v3.6: full pill */
+  padding: 5px;
+  box-shadow: var(--shadow-candy);
 }
 .dp-btn {
-  font-family: "Nunito", sans-serif;
+  font-family: var(--font-ui);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--cw-ink-soft);
   background: transparent;
   border: none;
-  padding: 6px 12px;
-  border-radius: 14px;
+  padding: 7px 14px;
+  border-radius: 999px;
   cursor: pointer;
-  transition: background 0.18s, color 0.18s;
+  /* v3.6: bouncy click */
+  transition: background 200ms ease, color 200ms ease,
+              transform 280ms var(--ease-pop);
 }
 .dp-btn:hover { background: rgba(79, 179, 255, 0.10); }
+.dp-btn:active { transform: scale(0.94); transition: transform 80ms ease; }
 .dp-btn.selected {
   background: var(--cw-bluey);
   color: white;
+  transform: scale(1.05);
 }
 .footer {
+  font-family: var(--font-ui);
   font-size: 11px;
   color: var(--cw-ink-soft);
   text-align: center;
@@ -472,7 +528,7 @@ html, body {
 .footer a {
   color: var(--cw-bluey-deep);
   text-decoration: none;
-  font-weight: 700;
+  font-weight: 600;
 }
 .footer a:hover { text-decoration: underline; }
 

@@ -46,6 +46,7 @@ fun ClockWiseTheme(
     MaterialTheme(
         colorScheme = BlueyLightColors,
         typography = Typography,
+        shapes = ClockWiseShapes,
         content = content,
     )
 }

@@ -1,7 +1,10 @@
 package com.batteria.clockwise.presentation.clock
 
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -47,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -150,13 +154,12 @@ private fun PortraitLayout(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = if (isTablet) 48.dp else 24.dp)
-            // animateContentSize on the portrait column so when the AM/PM badge
-            // appears or disappears, the segmented toggle rows below glide into
-            // their new positions instead of snapping.
+            // v3.6: bouncy spring (medium-low stiffness, low bounce) when AM/PM
+            // appears or disappears — toggles below glide with a tiny overshoot.
             .animateContentSize(
-                animationSpec = tween(
-                    durationMillis = 280,
-                    easing = FastOutSlowInEasing,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessMedium,
                 ),
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -245,12 +248,12 @@ private fun LandscapeLayout(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                // Same easing on the landscape info-column so the toggles
-                // below the digital card don't snap when AM/PM appears.
+                // v3.6: same bouncy spring for landscape so toggles glide
+                // with overshoot when AM/PM appears.
                 .animateContentSize(
-                    animationSpec = tween(
-                        durationMillis = 280,
-                        easing = FastOutSlowInEasing,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessMedium,
                     ),
                 ),
             verticalArrangement = Arrangement.Center,
@@ -670,18 +673,20 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
     OutlinedCard(
         // v3.5: card has a fixed width per seconds-mode, animating between them
         // so toggling Show s / Hide s glides smoothly instead of snapping.
+        // v3.6: bouncy spring with a medium overshoot for kid-friendly delight.
         // Tablet (big=true) uses 80sp digits → needs noticeably wider widths.
+        // v3.6: Fredoka is a bit wider than the prior sans-serif, so widths nudged up.
         modifier = Modifier.padding(horizontal = 4.dp).width(
             animateDpAsState(
                 targetValue = when {
-                    big && state.showSeconds  -> 320.dp
-                    big && !state.showSeconds -> 240.dp
-                    !big && state.showSeconds -> 240.dp
-                    else                      -> 180.dp
+                    big && state.showSeconds  -> 340.dp
+                    big && !state.showSeconds -> 260.dp
+                    !big && state.showSeconds -> 260.dp
+                    else                      -> 200.dp
                 },
-                animationSpec = tween(
-                    durationMillis = 280,
-                    easing = FastOutSlowInEasing,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMediumLow,
                 ),
                 label = "digitalCardWidth",
             ).value
@@ -693,12 +698,12 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
                     horizontal = if (big) 40.dp else 28.dp,
                     vertical = if (big) 22.dp else 16.dp,
                 )
-                // Animate the card's own height so the AM/PM collapse is smooth
-                // inside the card too (the badge slot shrinks gracefully).
+                // v3.6: bouncy spring on the card's interior height so the AM/PM
+                // collapse pops gently instead of snapping.
                 .animateContentSize(
-                    animationSpec = tween(
-                        durationMillis = 280,
-                        easing = FastOutSlowInEasing,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessMedium,
                     ),
                 ),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -708,21 +713,30 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
                 fontSize = if (big) 80.sp else 56.sp,
                 fontWeight = FontWeight.Bold,
                 color = BlueyPalette.Ink,
+                // v3.6: Fredoka looks best with a touch of positive letter-spacing
+                letterSpacing = 0.5.sp,
                 style = MaterialTheme.typography.displayLarge,
             )
             // AM/PM uses expandVertically/shrinkVertically so that BOTH the fade
             // AND the vertical layout collapse are animated. Without these the
             // height change snaps and the toggles below jump.
+            // v3.6: spring-based enter/exit for a tiny overshoot.
             androidx.compose.animation.AnimatedVisibility(
                 visible = showPeriod && periodText.isNotEmpty(),
                 enter = fadeIn(animationSpec = tween(220)) +
                         expandVertically(
-                            animationSpec = tween(280, easing = FastOutSlowInEasing),
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioLowBouncy,
+                                stiffness = Spring.StiffnessMedium,
+                            ),
                             expandFrom = Alignment.Top,
                         ),
                 exit = fadeOut(animationSpec = tween(180)) +
                        shrinkVertically(
-                           animationSpec = tween(280, easing = FastOutSlowInEasing),
+                           animationSpec = spring(
+                               dampingRatio = Spring.DampingRatioNoBouncy,
+                               stiffness = Spring.StiffnessMedium,
+                           ),
                            shrinkTowards = Alignment.Top,
                        ),
             ) {
@@ -742,6 +756,22 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
 
 /* -------------------- segmented toggles -------------------- */
 
+/**
+ * v3.6: shared bouncy scale for SegmentedButton selected state.
+ * The active segment pops to ~1.04x with a medium-bouncy spring so kids
+ * get a satisfying confirmation when they tap a toggle.
+ */
+@Composable
+private fun rememberSegmentScale(selected: Boolean): androidx.compose.runtime.State<Float> =
+    animateFloatAsState(
+        targetValue = if (selected) 1.04f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow,
+        ),
+        label = "segmentScale",
+    )
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FormatToggle(
@@ -753,8 +783,10 @@ private fun FormatToggle(
         modifier = Modifier.width(if (big) 260.dp else 200.dp),
     ) {
         TimeFormat.entries.forEachIndexed { idx, fmt ->
+            val selected = value == fmt
+            val scale by rememberSegmentScale(selected)
             SegmentedButton(
-                selected = value == fmt,
+                selected = selected,
                 onClick = { onChange(fmt) },
                 shape = SegmentedButtonDefaults.itemShape(index = idx, count = TimeFormat.entries.size),
                 colors = SegmentedButtonDefaults.colors(
@@ -763,6 +795,7 @@ private fun FormatToggle(
                     inactiveContainerColor = BlueyPalette.BgElevated,
                     inactiveContentColor = BlueyPalette.InkSoft,
                 ),
+                modifier = Modifier.scale(scale),
             ) {
                 Text(text = if (fmt == TimeFormat.H12) "12h" else "24h", fontWeight = FontWeight.Bold)
             }
@@ -781,8 +814,10 @@ private fun LanguageToggle(
         modifier = Modifier.width(if (big) 260.dp else 200.dp),
     ) {
         Language.entries.forEachIndexed { idx, lang ->
+            val selected = value == lang
+            val scale by rememberSegmentScale(selected)
             SegmentedButton(
-                selected = value == lang,
+                selected = selected,
                 onClick = { onChange(lang) },
                 shape = SegmentedButtonDefaults.itemShape(index = idx, count = Language.entries.size),
                 colors = SegmentedButtonDefaults.colors(
@@ -791,6 +826,7 @@ private fun LanguageToggle(
                     inactiveContainerColor = BlueyPalette.BgElevated,
                     inactiveContentColor = BlueyPalette.InkSoft,
                 ),
+                modifier = Modifier.scale(scale),
             ) {
                 Text(text = if (lang == Language.ZH) "中" else "EN", fontWeight = FontWeight.Bold)
             }
@@ -814,8 +850,10 @@ private fun ShowSecondsToggle(
         modifier = Modifier.width(if (big) 260.dp else 200.dp),
     ) {
         options.forEachIndexed { idx, opt ->
+            val selected = value == opt
+            val scale by rememberSegmentScale(selected)
             SegmentedButton(
-                selected = value == opt,
+                selected = selected,
                 onClick = { onChange(opt) },
                 shape = SegmentedButtonDefaults.itemShape(index = idx, count = options.size),
                 colors = SegmentedButtonDefaults.colors(
@@ -824,6 +862,7 @@ private fun ShowSecondsToggle(
                     inactiveContainerColor = BlueyPalette.BgElevated,
                     inactiveContentColor = BlueyPalette.InkSoft,
                 ),
+                modifier = Modifier.scale(scale),
             ) {
                 Text(text = labels[idx], fontWeight = FontWeight.Bold)
             }
@@ -845,8 +884,10 @@ private fun ModeToggle(
         modifier = Modifier.width(if (big) 260.dp else 200.dp),
     ) {
         options.forEachIndexed { idx, opt ->
+            val selected = value == opt
+            val scale by rememberSegmentScale(selected)
             SegmentedButton(
-                selected = value == opt,
+                selected = selected,
                 onClick = { onChange(opt) },
                 shape = SegmentedButtonDefaults.itemShape(index = idx, count = options.size),
                 colors = SegmentedButtonDefaults.colors(
@@ -855,6 +896,7 @@ private fun ModeToggle(
                     inactiveContainerColor = BlueyPalette.BgElevated,
                     inactiveContentColor = BlueyPalette.InkSoft,
                 ),
+                modifier = Modifier.scale(scale),
             ) {
                 Text(text = labels[idx], fontWeight = FontWeight.Bold)
             }

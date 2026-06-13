@@ -13,8 +13,8 @@ android {
         applicationId = "com.batteria.clockwise"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 36
+        versionName = "3.6.0"
     }
 
     buildFeatures {

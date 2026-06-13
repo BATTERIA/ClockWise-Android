@@ -10,6 +10,11 @@
     href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@500;700;800&family=Roboto+Mono:wght@500;700&family=Roboto+Flex:wght@300..700&display=swap"
     rel="stylesheet"
   />
+  <!-- v3.6: LXGW WenKai Screen (rounded Chinese font) for kid-friendly Chinese labels -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-screen-webfont@1.7.0/style.css"
+    rel="stylesheet"
+  />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -37,6 +42,22 @@
           <section class="clock-region">
             <div class="clock-wrap">
               <svg class="clock" viewBox="0 0 220 220" role="img" aria-label="Analog clock">
+                <!-- v3.6: gradient defs for candy face + 3D hands + pin highlight -->
+                <defs>
+                  <radialGradient id="faceCandyGradient" cx="50%" cy="30%" r="70%">
+                    <stop offset="0%"  stop-color="#FFFFFF" />
+                    <stop offset="60%" stop-color="#FFFDF5" />
+                    <stop offset="100%" stop-color="#FDFAF3" />
+                  </radialGradient>
+                  <linearGradient id="handHourGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#4F90F0" />
+                    <stop offset="100%" stop-color="#1E4FB8" />
+                  </linearGradient>
+                  <linearGradient id="handMinuteGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#7FCBFF" />
+                    <stop offset="100%" stop-color="#2A8FE6" />
+                  </linearGradient>
+                </defs>
                 <!-- Soft shadow / elevation halo -->
                 <circle cx="110" cy="114" r="100" class="face-shadow" />
                 <!-- Face -->
@@ -62,9 +83,10 @@
                   <text x="110" y="160" text-anchor="middle">MANUAL</text>
                 </g>
 
-                <!-- Center pin (bandit blue ring + chilli red dot) -->
-                <circle cx="110" cy="110" r="7.5" class="pin-outer" />
-                <circle cx="110" cy="110" r="3.6" class="pin-inner" />
+                <!-- Center pin (bandit blue ring + chilli red dot) + v3.6 highlight for 3D ball feel -->
+                <circle cx="110" cy="110" r="8.5" class="pin-outer" />
+                <circle cx="110" cy="110" r="4.0" class="pin-inner" />
+                <circle cx="108" cy="108" r="1.6" class="pin-highlight" />
               </svg>
             </div>
           </section>

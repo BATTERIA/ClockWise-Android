@@ -45,6 +45,10 @@ class ClockViewModel @Inject constructor(
         repo.setShowSeconds(show)
     }
 
+    fun setVoiceGender(gender: VoiceGender) = viewModelScope.launch {
+        repo.setVoiceGender(gender)
+    }
+
     /** Switch between AUTO/MANUAL. Seeds manualTotalSeconds from current real time on entry. */
     fun setMode(mode: ClockMode) {
         val current = transient.value

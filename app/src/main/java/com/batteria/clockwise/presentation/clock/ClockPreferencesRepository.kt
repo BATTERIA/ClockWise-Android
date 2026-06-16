@@ -24,6 +24,7 @@ class ClockPreferencesRepository @Inject constructor(
             timeFormat   = TimeFormat.fromKey(prefs[KEY_FORMAT]),
             language     = Language.fromKey(prefs[KEY_LANG]),
             showSeconds  = prefs[KEY_SHOW_SECONDS] ?: false,
+            voiceGender  = VoiceGender.fromKey(prefs[KEY_VOICE_GENDER]),
         )
     }
 
@@ -39,9 +40,14 @@ class ClockPreferencesRepository @Inject constructor(
         store.edit { it[KEY_SHOW_SECONDS] = show }
     }
 
+    suspend fun setVoiceGender(gender: VoiceGender) {
+        store.edit { it[KEY_VOICE_GENDER] = gender.key }
+    }
+
     private companion object {
         val KEY_FORMAT = stringPreferencesKey("time_format")
         val KEY_LANG = stringPreferencesKey("language")
         val KEY_SHOW_SECONDS = booleanPreferencesKey("show_seconds")
+        val KEY_VOICE_GENDER = stringPreferencesKey("voice_gender")
     }
 }

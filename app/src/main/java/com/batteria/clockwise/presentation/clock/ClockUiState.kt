@@ -20,6 +20,17 @@ enum class Language(val key: String) {
     }
 }
 
+/** v3.7: Pre-recorded voice pack persona for time announcements. */
+enum class VoiceGender(val key: String) {
+    GIRL("girl"),
+    BOY("boy");
+
+    companion object {
+        fun fromKey(key: String?): VoiceGender =
+            entries.firstOrNull { it.key == key } ?: GIRL
+    }
+}
+
 /** Clock operating mode: real-time auto-tick or transient manual drag-to-set. */
 enum class ClockMode { AUTO, MANUAL }
 
@@ -30,6 +41,8 @@ data class ClockUiState(
     /** Whether the digital clock should include seconds (default OFF for a cleaner look).
      *  When false, the analog second hand is also hidden entirely. */
     val showSeconds: Boolean = false,
+    /** v3.7: which pre-recorded voice pack to use for speak-time. */
+    val voiceGender: VoiceGender = VoiceGender.GIRL,
     /** AUTO = real-time tick (default). MANUAL = user drags hands; not persisted. */
     val mode: ClockMode = ClockMode.AUTO,
     /** Source-of-truth for manual mode: seconds within a 12-hour cycle, [0, 43200). */

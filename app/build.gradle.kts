@@ -13,8 +13,8 @@ android {
         applicationId = "com.batteria.clockwise"
         minSdk = 26
         targetSdk = 34
-        versionCode = 367
-        versionName = "3.6.7"
+        versionCode = 370
+        versionName = "3.7.0"
     }
 
     buildFeatures {
@@ -23,6 +23,13 @@ android {
 
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.8"
+    }
+
+    androidResources {
+        // v3.7: don't try to gzip already-compressed Opus/Ogg voice clips.
+        // Saves CPU at install time; assets are small enough that compression
+        // gains are negligible.
+        noCompress.add("ogg")
     }
 
     kotlinOptions {

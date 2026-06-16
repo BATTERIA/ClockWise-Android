@@ -76,9 +76,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.batteria.clockwise.presentation.theme.BlueyPalette
-import com.batteria.clockwise.util.TimeSpeech
-import com.batteria.clockwise.util.TtsManager
-import com.batteria.clockwise.util.toLocale
+import com.batteria.clockwise.util.SmartTtsManager
 import java.util.Calendar
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -101,6 +99,7 @@ fun ClockScreen(
         onTimeFormatChange = viewModel::setTimeFormat,
         onLanguageChange = viewModel::setLanguage,
         onShowSecondsChange = viewModel::setShowSeconds,
+        onVoiceGenderChange = viewModel::setVoiceGender,
         onModeChange = viewModel::setMode,
         onManualDelta = viewModel::addManualSeconds,
     )
@@ -112,6 +111,7 @@ fun ClockScreenContent(
     onTimeFormatChange: (TimeFormat) -> Unit,
     onLanguageChange: (Language) -> Unit,
     onShowSecondsChange: (Boolean) -> Unit,
+    onVoiceGenderChange: (VoiceGender) -> Unit,
     onModeChange: (ClockMode) -> Unit,
     onManualDelta: (Float) -> Unit,
 ) {
@@ -133,6 +133,7 @@ fun ClockScreenContent(
                     onTimeFormatChange = onTimeFormatChange,
                     onLanguageChange = onLanguageChange,
                     onShowSecondsChange = onShowSecondsChange,
+                    onVoiceGenderChange = onVoiceGenderChange,
                     onModeChange = onModeChange,
                     onManualDelta = onManualDelta,
                     isTablet = isTablet,
@@ -143,6 +144,7 @@ fun ClockScreenContent(
                     onTimeFormatChange = onTimeFormatChange,
                     onLanguageChange = onLanguageChange,
                     onShowSecondsChange = onShowSecondsChange,
+                    onVoiceGenderChange = onVoiceGenderChange,
                     onModeChange = onModeChange,
                     onManualDelta = onManualDelta,
                     isTablet = isTablet,
@@ -160,6 +162,7 @@ private fun PortraitLayout(
     onTimeFormatChange: (TimeFormat) -> Unit,
     onLanguageChange: (Language) -> Unit,
     onShowSecondsChange: (Boolean) -> Unit,
+    onVoiceGenderChange: (VoiceGender) -> Unit,
     onModeChange: (ClockMode) -> Unit,
     onManualDelta: (Float) -> Unit,
     isTablet: Boolean,
@@ -213,6 +216,13 @@ private fun PortraitLayout(
             big = isTablet,
         )
         Spacer(modifier = Modifier.height(10.dp))
+        VoiceGenderToggle(
+            value = state.voiceGender,
+            onChange = onVoiceGenderChange,
+            language = state.language,
+            big = isTablet,
+        )
+        Spacer(modifier = Modifier.height(10.dp))
         ModeToggle(
             value = state.mode,
             onChange = onModeChange,
@@ -232,6 +242,7 @@ private fun LandscapeLayout(
     onTimeFormatChange: (TimeFormat) -> Unit,
     onLanguageChange: (Language) -> Unit,
     onShowSecondsChange: (Boolean) -> Unit,
+    onVoiceGenderChange: (VoiceGender) -> Unit,
     onModeChange: (ClockMode) -> Unit,
     onManualDelta: (Float) -> Unit,
     isTablet: Boolean,
@@ -314,6 +325,14 @@ private fun LandscapeLayout(
                     ModeToggle(
                         value = state.mode,
                         onChange = onModeChange,
+                        language = state.language,
+                        big = isTablet,
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(if (isTablet) 16.dp else 10.dp)) {
+                    VoiceGenderToggle(
+                        value = state.voiceGender,
+                        onChange = onVoiceGenderChange,
                         language = state.language,
                         big = isTablet,
                     )
@@ -633,7 +652,7 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
     // v3.6.5: TTS engine, scoped to this composition. shutdown() runs on dispose
     // so we don't leak the TextToSpeech client between recompositions/screens.
     val context = LocalContext.current
-    val tts = remember { TtsManager(context) }
+    val tts = remember { SmartTtsManager(context) }
     DisposableEffect(Unit) { onDispose { tts.shutdown() } }
 
     // Auto-mode time source (only ticks when in AUTO).
@@ -707,9 +726,12 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
                 val h12 = if (h12raw == 0) 12 else h12raw
                 timeText = if (state.showSeconds) "%02d:%02d:%02d".format(h12, m, s)
                            else "%02d:%02d".format(h12, m)
-                // Show AM as default in manual 12h so the format toggle is visibly different.
-                periodText = when (state.language) { Language.EN -> "AM"; Language.ZH -> "上午" }
-                showPeriod = true
+                // v3.7: manual mode has no AM/PM info (the dial doesn't carry
+                // that), so the period label is hidden. Master's spec: 不展示
+                // PM 就直接居中 — the speaker button then sits centered
+                // beneath the digits.
+                periodText = ""
+                showPeriod = false
             }
         }
         speakH = when (state.timeFormat) {
@@ -746,109 +768,86 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
             ).value
         ),
     ) {
-        // v3.6.5: Box overlays a speaker IconButton on top of the centered Column
-        // so the digits stay dead-center inside the card while the mic floats
-        // on the right edge. Tapping it speaks the currently-displayed time.
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        // v3.6.4: small horizontal padding — the fixed card width
-                        // already includes breathing room around the text.
-                        horizontal = if (big) 16.dp else 12.dp,
-                        vertical = if (big) 22.dp else 16.dp,
-                    )
-                    // v3.6: bouncy spring on the card's interior height so the AM/PM
-                    // collapse pops gently instead of snapping.
-                    .animateContentSize(
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioLowBouncy,
-                            stiffness = Spring.StiffnessMedium,
-                        ),
-                    ),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    text = timeText,
-                    fontSize = if (big) 80.sp else 56.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = BlueyPalette.Ink,
-                    // v3.6.1: drop letter-spacing — Fredoka is already chunky.
-                    letterSpacing = 0.sp,
-                    style = MaterialTheme.typography.displayLarge,
-                    // v3.6.1: belt-and-suspenders — the readout must NEVER wrap.
-                    maxLines = 1,
-                    softWrap = false,
-                    // v3.6.4: fixed-width card is back; explicit center alignment so
-                    // the digits sit dead-center inside the card no matter what.
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
+        // v3.7: speaker button is now inline next to AM/PM (or centered on
+        // its own line when AM/PM is hidden). Master's spec: AM/PM 旁边，没有
+        // AM/PM 就居中。
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = if (big) 16.dp else 12.dp,
+                    vertical = if (big) 22.dp else 16.dp,
                 )
-                // AM/PM uses expandVertically/shrinkVertically so that BOTH the fade
-                // AND the vertical layout collapse are animated. Without these the
-                // height change snaps and the toggles below jump.
-                // v3.6: spring-based enter/exit for a tiny overshoot.
+                .animateContentSize(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessMedium,
+                    ),
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = timeText,
+                fontSize = if (big) 80.sp else 56.sp,
+                fontWeight = FontWeight.Bold,
+                color = BlueyPalette.Ink,
+                letterSpacing = 0.sp,
+                style = MaterialTheme.typography.displayLarge,
+                maxLines = 1,
+                softWrap = false,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(modifier = Modifier.height(if (big) 6.dp else 4.dp))
+            // Inline row: [AM/PM text][gap][🔊 button], centered.
+            // When AM/PM is hidden the row contains only the speaker button,
+            // so it naturally centers itself.
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 androidx.compose.animation.AnimatedVisibility(
                     visible = showPeriod && periodText.isNotEmpty(),
-                    enter = fadeIn(animationSpec = tween(220)) +
-                            expandVertically(
-                                animationSpec = spring(
-                                    dampingRatio = Spring.DampingRatioLowBouncy,
-                                    stiffness = Spring.StiffnessMedium,
-                                ),
-                                expandFrom = Alignment.Top,
-                            ),
-                    exit = fadeOut(animationSpec = tween(180)) +
-                           shrinkVertically(
-                               animationSpec = spring(
-                                   dampingRatio = Spring.DampingRatioNoBouncy,
-                                   stiffness = Spring.StiffnessMedium,
-                               ),
-                               shrinkTowards = Alignment.Top,
-                           ),
+                    enter = fadeIn(animationSpec = tween(220)),
+                    exit = fadeOut(animationSpec = tween(180)),
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Spacer(modifier = Modifier.height(2.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = periodText,
-                            fontSize = if (big) 16.sp else 14.sp,
+                            fontSize = if (big) 18.sp else 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = BlueyPalette.BlueyDeep,
                         )
+                        Spacer(modifier = Modifier.width(if (big) 10.dp else 8.dp))
                     }
                 }
-            }
-            // v3.6.5: TTS speaker button. Floats on the right edge of the card,
-            // small enough to not overlap the centered digits. Uses VolumeUp
-            // (speaker) rather than Mic because we're playing audio, not recording.
-            FilledIconButton(
-                onClick = {
-                    val sentence = TimeSpeech.build(
-                        hour = speakH,
-                        minute = speakM,
-                        second = speakS,
-                        includeSeconds = state.showSeconds,
-                        format = state.timeFormat,
-                        isPm = speakIsPm,
-                        language = state.language,
+                FilledIconButton(
+                    onClick = {
+                        tts.speakTime(
+                            hour = speakH,
+                            minute = speakM,
+                            second = speakS,
+                            includeSeconds = state.showSeconds,
+                            format = state.timeFormat,
+                            isPm = speakIsPm,
+                            language = state.language,
+                            gender = state.voiceGender,
+                            mode = state.mode,
+                        )
+                    },
+                    modifier = Modifier.size(if (big) 40.dp else 32.dp),
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = BlueyPalette.Bluey.copy(alpha = 0.15f),
+                        contentColor = BlueyPalette.Bluey,
+                    ),
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                        contentDescription = if (state.language == Language.ZH) "播报时间" else "Speak time",
+                        modifier = Modifier.size(if (big) 22.dp else 18.dp),
                     )
-                    tts.speak(sentence, state.language.toLocale())
-                },
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 4.dp)
-                    .size(if (big) 44.dp else 36.dp),
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = BlueyPalette.Bluey.copy(alpha = 0.15f),
-                    contentColor = BlueyPalette.Bluey,
-                ),
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                    contentDescription = if (state.language == Language.ZH) "播报时间" else "Speak time",
-                    modifier = Modifier.size(if (big) 24.dp else 20.dp),
-                )
+                }
             }
         }
     }
@@ -999,6 +998,45 @@ private fun ModeToggle(
                 modifier = Modifier.scale(scale),
             ) {
                 Text(text = labels[idx], fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun VoiceGenderToggle(
+    value: VoiceGender,
+    onChange: (VoiceGender) -> Unit,
+    language: Language,
+    big: Boolean,
+) {
+    // v3.7: pre-recorded voice pack persona toggle. Lives next to the other
+    // toggles so kids can flip the speaker between "girl" and "boy" voices
+    // without leaving the clock screen.
+    val options = VoiceGender.entries
+    val labelsZh = mapOf(VoiceGender.GIRL to "👧 小姐姐", VoiceGender.BOY to "👦 小哥哥")
+    val labelsEn = mapOf(VoiceGender.GIRL to "👧 Girl", VoiceGender.BOY to "👦 Boy")
+    val labels = if (language == Language.ZH) labelsZh else labelsEn
+    SingleChoiceSegmentedButtonRow(
+        modifier = Modifier.width(if (big) 260.dp else 200.dp),
+    ) {
+        options.forEachIndexed { idx, g ->
+            val selected = value == g
+            val scale by rememberSegmentScale(selected)
+            SegmentedButton(
+                selected = selected,
+                onClick = { onChange(g) },
+                shape = SegmentedButtonDefaults.itemShape(index = idx, count = options.size),
+                colors = SegmentedButtonDefaults.colors(
+                    activeContainerColor = BlueyPalette.BlueySoft,
+                    activeContentColor = BlueyPalette.BlueyDeep,
+                    inactiveContainerColor = BlueyPalette.BgElevated,
+                    inactiveContentColor = BlueyPalette.InkSoft,
+                ),
+                modifier = Modifier.scale(scale),
+            ) {
+                Text(text = labels[g] ?: "", fontWeight = FontWeight.Bold)
             }
         }
     }

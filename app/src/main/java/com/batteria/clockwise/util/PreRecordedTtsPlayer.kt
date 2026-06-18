@@ -11,7 +11,7 @@ import com.batteria.clockwise.presentation.clock.VoiceGender
 import java.io.IOException
 
 /**
- * v3.7: Pre-recorded voice pack player.
+ * v3.7.2: Pre-recorded voice pack player.
  *
  * Plays time announcements from full-sentence OGG/Opus clips that ship inside
  * the APK assets. This sidesteps the device's TTS engine entirely (no more
@@ -25,20 +25,22 @@ import java.io.IOException
  * where:
  *   gender ∈ { girl, boy }
  *   lang   ∈ { zh, en }
- *   period ∈ { am, pm, manual }   (12h-mode only)
- *   HH     = hour 01..12 (12h clock)
+ *   period ∈ { am, pm, manual, h24 }
+ *   HH     = 01..12 for am/pm/manual buckets, 00..23 for the h24 bucket
  *   MM     = minute 00..59
  *
  * The "manual" bucket drops the "现在是" / "It's" lead-in (because in manual
  * mode the user is dragging the dial, not asking what time it actually is)
  * and also drops AM/PM (the dial doesn't carry that information).
  *
- * Coverage: 12h-mode only. 24h-mode and showSeconds=true fall back to the
- * legacy [TtsManager] (system TextToSpeech) so we don't bloat the APK to
- * 4× the size.
+ * Coverage: 12h-mode (am/pm/manual) AND 24h-mode (h24). The legacy
+ * [TtsManager] system fallback only kicks in for genuinely missing assets;
+ * v3.7.1+ never speaks seconds, so includeSeconds is ignored.
  *
  * Example:  voice/girl/zh/am/0925.ogg  →  "现在是上午九点二十五分"
  *           voice/boy/en/pm/0700.ogg   →  "It's 7 o'clock PM."
+ *           voice/girl/zh/h24/1330.ogg →  "现在是13点30分"
+ *           voice/boy/en/h24/0005.ogg  →  "It's 0 oh five."
  */
 class PreRecordedTtsPlayer(context: Context) {
     private val appCtx = context.applicationContext
@@ -57,27 +59,41 @@ class PreRecordedTtsPlayer(context: Context) {
         hour: Int,
         minute: Int,
         @Suppress("UNUSED_PARAMETER") second: Int,
-        includeSeconds: Boolean,
+        @Suppress("UNUSED_PARAMETER") includeSeconds: Boolean,
         format: TimeFormat,
         isPm: Boolean,
         language: Language,
         gender: VoiceGender,
         mode: ClockMode = ClockMode.AUTO,
     ): Boolean {
-        // Voice pack only covers 12h, no-seconds, AM/PM-aware sentences.
-        if (format != TimeFormat.H12 || includeSeconds) return false
-        // 12h displayed hour is 1..12 (we treat 0/24 as 12).
-        val h12 = ((hour - 1) % 12 + 12) % 12 + 1
-        val period = when {
-            mode == ClockMode.MANUAL -> "manual"
-            isPm -> "pm"
-            else -> "am"
+        // v3.7.2: voice pack covers BOTH 12h (am/pm/manual) and 24h (h24).
+        // includeSeconds is ignored — Master's rule: seconds are never spoken,
+        // so we always route to the corresponding minute-precision clip.
+        val (period, hh) = when {
+            format == TimeFormat.H24 -> {
+                // 24h dial uses the bare 00..23 hour.
+                val h24 = ((hour % 24) + 24) % 24
+                "h24" to h24
+            }
+            mode == ClockMode.MANUAL -> {
+                // Manual 12h drops AM/PM and the "现在是" lead-in.
+                val h12 = ((hour - 1) % 12 + 12) % 12 + 1
+                "manual" to h12
+            }
+            isPm -> {
+                val h12 = ((hour - 1) % 12 + 12) % 12 + 1
+                "pm" to h12
+            }
+            else -> {
+                val h12 = ((hour - 1) % 12 + 12) % 12 + 1
+                "am" to h12
+            }
         }
         val lang = when (language) {
             Language.ZH -> "zh"
             Language.EN -> "en"
         }
-        val assetPath = "voice/${gender.key}/$lang/$period/%02d%02d.ogg".format(h12, minute)
+        val assetPath = "voice/${gender.key}/$lang/$period/%02d%02d.ogg".format(hh, minute)
         return playAsset(assetPath)
     }
 

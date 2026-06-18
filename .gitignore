@@ -17,3 +17,4 @@ local.properties
 # OS
 Thumbs.db
 docs/downloads/clockwise-v3.7.0-debug.apk
+docs/downloads/*.apk

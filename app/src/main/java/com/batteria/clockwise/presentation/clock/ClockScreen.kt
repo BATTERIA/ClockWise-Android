@@ -828,7 +828,9 @@ private fun DigitalCard(state: ClockUiState, big: Boolean) {
                             hour = speakH,
                             minute = speakM,
                             second = speakS,
-                            includeSeconds = state.showSeconds,
+                            // Master's call: seconds are never spoken, even in seconds mode.
+                            // The dial still shows them — the voice just stops at the minute.
+                            includeSeconds = false,
                             format = state.timeFormat,
                             isPm = speakIsPm,
                             language = state.language,

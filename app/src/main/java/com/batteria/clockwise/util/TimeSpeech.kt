@@ -20,40 +20,39 @@ object TimeSpeech {
     fun build(
         hour: Int,
         minute: Int,
-        second: Int,
-        includeSeconds: Boolean,
+        @Suppress("UNUSED_PARAMETER") second: Int,
+        @Suppress("UNUSED_PARAMETER") includeSeconds: Boolean,
         format: TimeFormat,
         isPm: Boolean,
         language: Language,
     ): String = when (language) {
-        Language.EN -> buildEn(hour, minute, second, includeSeconds, format, isPm)
-        Language.ZH -> buildZh(hour, minute, second, includeSeconds, format, isPm)
+        // Master's call: seconds are NEVER spoken aloud, even in seconds mode.
+        // The dial/digits still show seconds; the voice just stays at minute precision.
+        Language.EN -> buildEn(hour, minute, format, isPm)
+        Language.ZH -> buildZh(hour, minute, format, isPm)
     }
 
-    private fun buildEn(h: Int, m: Int, s: Int, withS: Boolean, fmt: TimeFormat, pm: Boolean): String {
+    private fun buildEn(h: Int, m: Int, fmt: TimeFormat, pm: Boolean): String {
         val hourWord = when {
             fmt == TimeFormat.H24 -> h.toString()
             h == 0 -> "12"
             else -> h.toString()
         }
         val sb = StringBuilder()
-        // "It's six thirty-two AM" / "Six o'clock"
+        // "It's six thirty-two AM" / "Six o'clock" — no seconds, ever.
         sb.append("It's ").append(hourWord)
         when {
-            m == 0 && !withS -> sb.append(" o'clock")
+            m == 0 -> sb.append(" o'clock")
             else -> {
                 sb.append(' ')
                 sb.append(twoDigitWords(m))
-                if (withS) {
-                    sb.append(" and ").append(twoDigitWords(s)).append(" seconds")
-                }
             }
         }
         if (fmt == TimeFormat.H12) sb.append(if (pm) " PM" else " AM")
         return sb.toString()
     }
 
-    private fun buildZh(h: Int, m: Int, s: Int, withS: Boolean, fmt: TimeFormat, pm: Boolean): String {
+    private fun buildZh(h: Int, m: Int, fmt: TimeFormat, pm: Boolean): String {
         val prefix = if (fmt == TimeFormat.H12) (if (pm) "下午" else "上午") else ""
         val hourWord = when (fmt) {
             TimeFormat.H24 -> "${h}点"
@@ -62,11 +61,8 @@ object TimeSpeech {
                 "${h12}点"
             }
         }
-        val rest = when {
-            m == 0 && !withS -> "整"
-            !withS -> "${m}分"
-            else -> "${m}分${s}秒"
-        }
+        // No seconds in speech — even in seconds mode we stop at the minute.
+        val rest = if (m == 0) "整" else "${m}分"
         return "现在是${prefix}${hourWord}${rest}"
     }
 

@@ -1,21 +1,8 @@
 package com.batteria.clockwise.presentation.clock
 
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.drag
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -31,66 +18,50 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledIconButton
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.batteria.clockwise.presentation.clock.components.AnalogClockFace
+import com.batteria.clockwise.presentation.clock.components.ClockTime
+import com.batteria.clockwise.presentation.clock.components.DigitalCard
+import com.batteria.clockwise.presentation.clock.components.FormatToggle
+import com.batteria.clockwise.presentation.clock.components.LanguageToggle
+import com.batteria.clockwise.presentation.clock.components.ModeToggle
+import com.batteria.clockwise.presentation.clock.components.ShowSecondsToggle
+import com.batteria.clockwise.presentation.clock.components.VoiceGenderToggle
 import com.batteria.clockwise.presentation.theme.BlueyPalette
-import com.batteria.clockwise.util.SmartTtsManager
-import java.util.Calendar
-import kotlin.math.abs
-import kotlin.math.atan2
-import kotlin.math.cos
 import kotlin.math.min
-import kotlin.math.sin
 
-private const val CYCLE_SECONDS = 43200f // 12h * 3600
-
-/* -------------------- entry point -------------------- */
+/**
+ * v4.0 — Slimmed-down clock screen.
+ *
+ * Behavior is identical to v3.7.x: the full analog dial, the chunky digital
+ * card, and the 5 toggles. What's new:
+ *  - Every visual piece now lives in its own file under
+ *    `presentation/clock/components/` so the quiz screen (and future
+ *    surfaces) can reuse them without copy-pasting.
+ *  - A back IconButton appears in the top-start corner so kids can return
+ *    to the game; the system back gesture also navigates back via NavController.
+ *  - Behavior preserved: AUTO/MANUAL, drag-to-set, TTS speaker, 12/24h, ZH/EN,
+ *    show/hide seconds, voice persona — all wired through ClockViewModel.
+ */
 
 @Composable
 fun ClockScreen(
-    @Suppress("UNUSED_PARAMETER") navController: NavController? = null,
+    navController: NavController? = null,
     viewModel: ClockViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -102,6 +73,7 @@ fun ClockScreen(
         onVoiceGenderChange = viewModel::setVoiceGender,
         onModeChange = viewModel::setMode,
         onManualDelta = viewModel::addManualSeconds,
+        onBack = { navController?.popBackStack() },
     )
 }
 
@@ -114,6 +86,7 @@ fun ClockScreenContent(
     onVoiceGenderChange: (VoiceGender) -> Unit,
     onModeChange: (ClockMode) -> Unit,
     onManualDelta: (Float) -> Unit,
+    onBack: () -> Unit,
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -150,6 +123,27 @@ fun ClockScreenContent(
                     isTablet = isTablet,
                 )
             }
+
+            // Top-start back IconButton (Material 3 FilledTonalIconButton).
+            // System back gesture/key also pops the back stack; this is the
+            // explicit visual affordance Master asked for.
+            FilledTonalIconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 16.dp, top = 12.dp)
+                    .size(48.dp)
+                    .testTag("clock_back_button"),
+                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = BlueyPalette.BlueySoft,
+                    contentColor = BlueyPalette.BlueyDeep,
+                ),
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = if (state.language == Language.ZH) "返回游戏" else "Back to game",
+                )
+            }
         }
     }
 }
@@ -171,8 +165,6 @@ private fun PortraitLayout(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = if (isTablet) 48.dp else 24.dp)
-            // v3.6: bouncy spring (medium-low stiffness, low bounce) when AM/PM
-            // appears or disappears — toggles below glide with a tiny overshoot.
             .animateContentSize(
                 animationSpec = spring(
                     dampingRatio = Spring.DampingRatioLowBouncy,
@@ -183,9 +175,11 @@ private fun PortraitLayout(
     ) {
         Spacer(modifier = Modifier.weight(0.10f))
 
-        AnalogClock(
-            state = state,
-            onManualDelta = onManualDelta,
+        AnalogClockFace(
+            time = if (state.mode == ClockMode.AUTO) ClockTime.Live
+                   else ClockTime.Manual(state.manualTotalSeconds),
+            showSeconds = state.showSeconds,
+            onManualDelta = if (state.mode == ClockMode.MANUAL) onManualDelta else null,
             modifier = Modifier
                 .fillMaxWidth(if (isTablet) 0.82f else 0.84f)
                 .aspectRatio(1f),
@@ -197,38 +191,15 @@ private fun PortraitLayout(
 
         Spacer(modifier = Modifier.height(if (isTablet) 24.dp else 18.dp))
 
-        FormatToggle(
-            value = state.timeFormat,
-            onChange = onTimeFormatChange,
-            big = isTablet,
-        )
+        FormatToggle(value = state.timeFormat, onChange = onTimeFormatChange, big = isTablet)
         Spacer(modifier = Modifier.height(10.dp))
-        LanguageToggle(
-            value = state.language,
-            onChange = onLanguageChange,
-            big = isTablet,
-        )
+        LanguageToggle(value = state.language, onChange = onLanguageChange, big = isTablet)
         Spacer(modifier = Modifier.height(10.dp))
-        ShowSecondsToggle(
-            value = state.showSeconds,
-            onChange = onShowSecondsChange,
-            language = state.language,
-            big = isTablet,
-        )
+        ShowSecondsToggle(value = state.showSeconds, onChange = onShowSecondsChange, language = state.language, big = isTablet)
         Spacer(modifier = Modifier.height(10.dp))
-        VoiceGenderToggle(
-            value = state.voiceGender,
-            onChange = onVoiceGenderChange,
-            language = state.language,
-            big = isTablet,
-        )
+        VoiceGenderToggle(value = state.voiceGender, onChange = onVoiceGenderChange, language = state.language, big = isTablet)
         Spacer(modifier = Modifier.height(10.dp))
-        ModeToggle(
-            value = state.mode,
-            onChange = onModeChange,
-            language = state.language,
-            big = isTablet,
-        )
+        ModeToggle(value = state.mode, onChange = onModeChange, language = state.language, big = isTablet)
 
         Spacer(modifier = Modifier.weight(0.18f))
     }
@@ -255,32 +226,22 @@ private fun LandscapeLayout(
         horizontalArrangement = Arrangement.spacedBy(if (isTablet) 48.dp else 20.dp),
     ) {
         Box(
-            modifier = Modifier
-                // v3.6.7: was 1.1f — give the right column (2x2 toggle grid)
-                // more room. Toggles are 200dp / 260dp wide; two side by side
-                // with a gap need ~410dp / ~536dp. Clock keeps a square aspect
-                // ratio so it just shrinks to the available height.
-                .weight(0.9f)
-                .fillMaxHeight(),
+            modifier = Modifier.weight(0.9f).fillMaxHeight(),
             contentAlignment = Alignment.Center,
         ) {
-            AnalogClock(
-                state = state,
-                onManualDelta = onManualDelta,
-                modifier = Modifier
-                    .fillMaxHeight(0.92f)
-                    .aspectRatio(1f),
+            AnalogClockFace(
+                time = if (state.mode == ClockMode.AUTO) ClockTime.Live
+                       else ClockTime.Manual(state.manualTotalSeconds),
+                showSeconds = state.showSeconds,
+                onManualDelta = if (state.mode == ClockMode.MANUAL) onManualDelta else null,
+                modifier = Modifier.fillMaxHeight(0.92f).aspectRatio(1f),
             )
         }
 
         Column(
             modifier = Modifier
-                // v3.6.7: was 1f — expand to fit the 2x2 toggle grid (~410dp
-                // wide on phone / ~536dp on tablet).
                 .weight(1.2f)
                 .fillMaxHeight()
-                // v3.6: same bouncy spring for landscape so toggles glide
-                // with overshoot when AM/PM appears.
                 .animateContentSize(
                     animationSpec = spring(
                         dampingRatio = Spring.DampingRatioLowBouncy,
@@ -292,753 +253,21 @@ private fun LandscapeLayout(
         ) {
             DigitalCard(state = state, big = isTablet)
             Spacer(modifier = Modifier.height(if (isTablet) 28.dp else 18.dp))
-            // v3.6.7: landscape — pack the 4 toggles into a 2x2 grid so they
-            // all fit on phone-landscape (~360dp tall) without scrolling. The
-            // golden-ratio Column layout was overflowing once the Mode toggle
-            // was added in v3.2; Master spotted that the bottom toggle was
-            // clipped. A grid is better than scrolling here: kids shouldn't
-            // need to discover that there's hidden UI, and landscape has
-            // plenty of width to spend.
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(if (isTablet) 12.dp else 8.dp),
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(if (isTablet) 16.dp else 10.dp)) {
-                    FormatToggle(
-                        value = state.timeFormat,
-                        onChange = onTimeFormatChange,
-                        big = isTablet,
-                    )
-                    LanguageToggle(
-                        value = state.language,
-                        onChange = onLanguageChange,
-                        big = isTablet,
-                    )
+                    FormatToggle(value = state.timeFormat, onChange = onTimeFormatChange, big = isTablet)
+                    LanguageToggle(value = state.language, onChange = onLanguageChange, big = isTablet)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(if (isTablet) 16.dp else 10.dp)) {
-                    ShowSecondsToggle(
-                        value = state.showSeconds,
-                        onChange = onShowSecondsChange,
-                        language = state.language,
-                        big = isTablet,
-                    )
-                    ModeToggle(
-                        value = state.mode,
-                        onChange = onModeChange,
-                        language = state.language,
-                        big = isTablet,
-                    )
+                    ShowSecondsToggle(value = state.showSeconds, onChange = onShowSecondsChange, language = state.language, big = isTablet)
+                    ModeToggle(value = state.mode, onChange = onModeChange, language = state.language, big = isTablet)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(if (isTablet) 16.dp else 10.dp)) {
-                    VoiceGenderToggle(
-                        value = state.voiceGender,
-                        onChange = onVoiceGenderChange,
-                        language = state.language,
-                        big = isTablet,
-                    )
+                    VoiceGenderToggle(value = state.voiceGender, onChange = onVoiceGenderChange, language = state.language, big = isTablet)
                 }
-            }
-        }
-    }
-}
-
-/* -------------------- analog clock (Canvas) -------------------- */
-
-@Composable
-private fun AnalogClock(
-    state: ClockUiState,
-    onManualDelta: (Float) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    // Auto-mode time source.
-    var nowMs by remember { mutableStateOf(System.currentTimeMillis()) }
-    val isAuto = state.mode == ClockMode.AUTO
-    LaunchedEffect(isAuto) {
-        if (isAuto) {
-            while (true) {
-                withFrameNanos { nowMs = System.currentTimeMillis() }
-            }
-        }
-    }
-
-    // Compute hand angles based on mode.
-    val hourAngle: Float
-    val minuteAngle: Float
-    val secondAngle: Float
-
-    if (isAuto) {
-        val cal = remember { Calendar.getInstance() }
-        cal.timeInMillis = nowMs
-        val h = cal.get(Calendar.HOUR_OF_DAY)
-        val m = cal.get(Calendar.MINUTE)
-        val s = cal.get(Calendar.SECOND)
-        val ms = cal.get(Calendar.MILLISECOND)
-        hourAngle = ((h % 12) + m / 60f) * 30f
-        minuteAngle = (m + s / 60f) * 6f
-        secondAngle = (s + ms / 1000f) * 6f
-    } else {
-        val total = state.manualTotalSeconds
-        hourAngle   = (total / CYCLE_SECONDS) * 360f
-        minuteAngle = ((total % 3600f) / 3600f) * 360f
-        secondAngle = ((total % 60f) / 60f) * 360f
-    }
-
-    // Wrap angles into a State so the pointerInput closure (which captures these once)
-    // always sees the latest values without re-keying the modifier.
-    val hourAngleState = rememberUpdatedState(hourAngle)
-    val minuteAngleState = rememberUpdatedState(minuteAngle)
-    val secondAngleState = rememberUpdatedState(secondAngle)
-    val onDeltaState = rememberUpdatedState(onManualDelta)
-    val showSecondsState = rememberUpdatedState(state.showSeconds)
-
-    // Track which hand is currently being dragged (purely visual: thicker stroke).
-    var draggingHand by remember { mutableStateOf(HAND_NONE) }
-
-    // v3.6.5: animate the stroke widths with a medium-bouncy spring so that the
-    // press-down thickening pops smoothly instead of snapping. Defined here in
-    // the composable scope so we can pass the live values into the Canvas draw.
-    val hourSw by animateFloatAsState(
-        targetValue = if (draggingHand == HAND_HOUR) 14f * 1.6f else 14f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
-        label = "hourSw",
-    )
-    val minuteSw by animateFloatAsState(
-        targetValue = if (draggingHand == HAND_MINUTE) 10f * 1.6f else 10f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
-        label = "minuteSw",
-    )
-    val secondSw by animateFloatAsState(
-        targetValue = if (draggingHand == HAND_SECOND) 4f * 1.6f else 4f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
-        label = "secondSw",
-    )
-
-    // v3.6.5: switch from detectDragGestures to awaitEachGesture so we can
-    // mark draggingHand the instant a finger touches the hand — not only
-    // after movement begins. The hand now thickens immediately on press-down.
-    val dragModifier = if (state.mode == ClockMode.MANUAL) {
-        Modifier.pointerInput(Unit) {
-            val w = size.width.toFloat()
-            val h = size.height.toFloat()
-            val cx = w / 2f
-            val cy = h / 2f
-            awaitEachGesture {
-                val down = awaitFirstDown(requireUnconsumed = false)
-                val downAngle = pointerAngleDeg(down.position.x - cx, down.position.y - cy)
-                var lastAngle = downAngle
-                val grabbedHand = pickHand(
-                    pointerAngle = downAngle,
-                    hourAngle = hourAngleState.value,
-                    minuteAngle = minuteAngleState.value,
-                    secondAngle = secondAngleState.value,
-                    showSeconds = showSecondsState.value,
-                )
-                if (grabbedHand == HAND_NONE) return@awaitEachGesture
-                // PRESS-DOWN visual: widen immediately, before any drag motion.
-                draggingHand = grabbedHand
-                try {
-                    // Then handle the drag portion of the gesture in the same flow.
-                    drag(down.id) { change ->
-                        change.consume()
-                        val pos = change.position
-                        val newAngle = pointerAngleDeg(pos.x - cx, pos.y - cy)
-                        val delta = shortestDelta(lastAngle, newAngle)
-                        lastAngle = newAngle
-                        val secondsDelta = when (grabbedHand) {
-                            HAND_HOUR   -> delta * 120f   // 1° = 120s
-                            HAND_MINUTE -> delta * 10f    // 1° = 10s
-                            HAND_SECOND -> delta / 6f     // 1° = 1/6 s
-                            else -> 0f
-                        }
-                        if (secondsDelta != 0f) onDeltaState.value(secondsDelta)
-                    }
-                } finally {
-                    // Always reset, whether drag completed normally or was cancelled.
-                    draggingHand = HAND_NONE
-                }
-            }
-        }
-    } else {
-        Modifier
-    }
-
-    Canvas(
-        modifier = modifier
-            .shadow(
-                elevation = 12.dp,
-                shape = RoundedCornerShape(percent = 50),
-                ambientColor = BlueyPalette.Ink,
-                spotColor = BlueyPalette.Ink,
-            )
-            .background(
-                color = if (state.mode == ClockMode.MANUAL)
-                    BlueyPalette.BgElevated.copy(alpha = 0.95f)
-                else BlueyPalette.BgElevated,
-                shape = RoundedCornerShape(percent = 50),
-            )
-            .then(dragModifier),
-    ) {
-        drawClockFace()
-        drawTicks()
-        drawNumbers()
-        // v3.6.5: stroke widths come from animated state (declared above) so the
-        // press-down "pop" is a smooth bouncy spring rather than a hard step.
-        drawHand(angleDeg = hourAngle,   lengthFrac = 0.55f, strokeWidth = hourSw,   color = BlueyPalette.Bandit)
-        drawHand(angleDeg = minuteAngle, lengthFrac = 0.78f, strokeWidth = minuteSw, color = BlueyPalette.Bluey)
-        if (state.showSeconds) {
-            drawHand(angleDeg = secondAngle, lengthFrac = 0.86f, strokeWidth = secondSw, color = BlueyPalette.Chilli)
-        }
-        drawCenterPin()
-        // v3.6.5: MANUAL badge removed — the Mode segmented toggle already tells
-        // the user they're in manual mode; the badge looked ugly on the dial.
-    }
-}
-
-/* ---- drag helpers ---- */
-
-private const val HAND_NONE = -1
-private const val HAND_HOUR = 0
-private const val HAND_MINUTE = 1
-private const val HAND_SECOND = 2
-
-/** Angle in degrees with 0 at 12 o'clock and clockwise positive. */
-private fun pointerAngleDeg(dx: Float, dy: Float): Float {
-    var deg = (atan2(dy.toDouble(), dx.toDouble()) * 180.0 / Math.PI + 90.0).toFloat()
-    deg = ((deg % 360f) + 360f) % 360f
-    return deg
-}
-
-/** Smallest signed delta from prev → curr, in (-180, 180]. */
-private fun shortestDelta(prev: Float, curr: Float): Float {
-    var d = curr - prev
-    while (d > 180f) d -= 360f
-    while (d <= -180f) d += 360f
-    return d
-}
-
-/** Pick the hand whose angle is closest to the pointer angle (within ±20°). */
-private fun pickHand(
-    pointerAngle: Float,
-    hourAngle: Float,
-    minuteAngle: Float,
-    secondAngle: Float,
-    showSeconds: Boolean,
-): Int {
-    // Wider tolerance (was 15°) so taps land more easily on phones.
-    val tolerance = 20f
-    val dHour = abs(shortestDelta(hourAngle,   pointerAngle))
-    val dMin  = abs(shortestDelta(minuteAngle, pointerAngle))
-    val dSec  = if (showSeconds) abs(shortestDelta(secondAngle, pointerAngle)) else Float.MAX_VALUE
-    // Prefer the closest. If second hand is visible and within tolerance, give it priority
-    // because it sits on top visually — but only if it's actually the closest.
-    val best = minOf(dHour, dMin, dSec)
-    if (best > tolerance) return HAND_NONE
-    return when (best) {
-        dSec -> HAND_SECOND
-        dMin -> HAND_MINUTE
-        else -> HAND_HOUR
-    }
-}
-
-private fun DrawScope.drawClockFace() {
-    val r = size.minDimension / 2f
-    drawCircle(
-        color = BlueyPalette.Outline,
-        radius = r - 6f,
-        style = Stroke(width = 6f),
-    )
-}
-
-private fun DrawScope.drawTicks() {
-    val r = size.minDimension / 2f
-    val cx = size.width / 2f
-    val cy = size.height / 2f
-    for (i in 0 until 60) {
-        val angle = Math.toRadians((i * 6 - 90).toDouble())
-        val isMajor = i % 5 == 0
-        val inner = if (isMajor) r * 0.84f else r * 0.88f
-        val outer = r * 0.93f
-        val x1 = cx + (cos(angle) * inner).toFloat()
-        val y1 = cy + (sin(angle) * inner).toFloat()
-        val x2 = cx + (cos(angle) * outer).toFloat()
-        val y2 = cy + (sin(angle) * outer).toFloat()
-        drawLine(
-            color = if (isMajor) BlueyPalette.BlueyDeep.copy(alpha = 0.7f) else BlueyPalette.Outline.copy(alpha = 0.55f),
-            start = Offset(x1, y1),
-            end = Offset(x2, y2),
-            strokeWidth = if (isMajor) 5f else 2f,
-            cap = StrokeCap.Round,
-        )
-    }
-}
-
-private fun DrawScope.drawNumbers() {
-    val r = size.minDimension / 2f
-    val cx = size.width / 2f
-    val cy = size.height / 2f
-    val numberR = r * 0.72f
-    val textSizePx = r * 0.16f
-    val paint = android.graphics.Paint().apply {
-        color = android.graphics.Color.argb(
-            255,
-            (BlueyPalette.Ink.red * 255).toInt(),
-            (BlueyPalette.Ink.green * 255).toInt(),
-            (BlueyPalette.Ink.blue * 255).toInt(),
-        )
-        textSize = textSizePx
-        textAlign = android.graphics.Paint.Align.CENTER
-        isAntiAlias = true
-        typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
-    }
-    val fm = paint.fontMetrics
-    val baselineOffset = (fm.descent + fm.ascent) / 2f
-    drawIntoCanvasCompat { c ->
-        for (n in 1..12) {
-            val angle = Math.toRadians((n * 30 - 90).toDouble())
-            val x = cx + (cos(angle) * numberR).toFloat()
-            val y = cy + (sin(angle) * numberR).toFloat() - baselineOffset
-            c.drawText(n.toString(), x, y, paint)
-        }
-    }
-}
-
-private inline fun DrawScope.drawIntoCanvasCompat(block: (android.graphics.Canvas) -> Unit) {
-    block(this.drawContext.canvas.nativeCanvas)
-}
-
-private fun DrawScope.drawHand(
-    angleDeg: Float,
-    lengthFrac: Float,
-    strokeWidth: Float,
-    color: Color,
-) {
-    val r = size.minDimension / 2f
-    val cx = size.width / 2f
-    val cy = size.height / 2f
-    val angle = Math.toRadians((angleDeg - 90).toDouble())
-    val length = r * lengthFrac
-    val x = cx + (cos(angle) * length).toFloat()
-    val y = cy + (sin(angle) * length).toFloat()
-    drawLine(
-        color = color,
-        start = Offset(cx, cy),
-        end = Offset(x, y),
-        strokeWidth = strokeWidth,
-        cap = StrokeCap.Round,
-    )
-}
-
-private fun DrawScope.drawCenterPin() {
-    val cx = size.width / 2f
-    val cy = size.height / 2f
-    val r = size.minDimension / 2f
-    drawCircle(color = BlueyPalette.Bandit, radius = r * 0.06f, center = Offset(cx, cy))
-    drawCircle(color = BlueyPalette.Chilli, radius = r * 0.028f, center = Offset(cx, cy))
-}
-
-/* -------------------- digital card -------------------- */
-
-@Composable
-private fun DigitalCard(state: ClockUiState, big: Boolean) {
-    // v3.6.5: TTS engine, scoped to this composition. shutdown() runs on dispose
-    // so we don't leak the TextToSpeech client between recompositions/screens.
-    val context = LocalContext.current
-    val tts = remember { SmartTtsManager(context) }
-    DisposableEffect(Unit) { onDispose { tts.shutdown() } }
-
-    // Auto-mode time source (only ticks when in AUTO).
-    var nowMs by remember { mutableStateOf(System.currentTimeMillis()) }
-    val isAuto = state.mode == ClockMode.AUTO
-    LaunchedEffect(isAuto) {
-        if (isAuto) {
-            while (true) {
-                withFrameNanos { nowMs = System.currentTimeMillis() }
-            }
-        }
-    }
-
-    val timeText: String
-    val periodText: String
-    // Track whether period should be visible (only true in AUTO + 12h).
-    val showPeriod: Boolean
-    // v3.6.5: parallel snapshot of h/m/s/isPm for TTS — same numbers the digits
-    // show, but kept as ints so TimeSpeech can format the natural sentence.
-    val speakH: Int
-    val speakM: Int
-    val speakS: Int
-    val speakIsPm: Boolean
-    if (isAuto) {
-        val cal = remember { Calendar.getInstance() }
-        cal.timeInMillis = nowMs
-        val h = cal.get(Calendar.HOUR_OF_DAY)
-        val m = cal.get(Calendar.MINUTE)
-        val s = cal.get(Calendar.SECOND)
-        when (state.timeFormat) {
-            TimeFormat.H24 -> {
-                timeText = if (state.showSeconds) "%02d:%02d:%02d".format(h, m, s)
-                           else "%02d:%02d".format(h, m)
-                periodText = ""
-                showPeriod = false
-            }
-            TimeFormat.H12 -> {
-                val isPm = h >= 12
-                val h12 = if (h % 12 == 0) 12 else h % 12
-                timeText = if (state.showSeconds) "%02d:%02d:%02d".format(h12, m, s)
-                           else "%02d:%02d".format(h12, m)
-                periodText = when (state.language) {
-                    Language.EN -> if (isPm) "PM" else "AM"
-                    Language.ZH -> if (isPm) "下午" else "上午"
-                }
-                showPeriod = true
-            }
-        }
-        speakH = when (state.timeFormat) {
-            TimeFormat.H24 -> h
-            TimeFormat.H12 -> if (h % 12 == 0) 12 else h % 12
-        }
-        speakM = m
-        speakS = s
-        speakIsPm = state.timeFormat == TimeFormat.H12 && h >= 12
-    } else {
-        // Manual mode: derive from manualTotalSeconds; no AM/PM info from the dial.
-        val total = ((state.manualTotalSeconds.toInt() % 43200) + 43200) % 43200
-        val h12raw = total / 3600         // 0..11
-        val m = (total % 3600) / 60
-        val s = total % 60
-        when (state.timeFormat) {
-            TimeFormat.H24 -> {
-                // 24h manual: show 0..11 as-is so the toggle is visibly different from 12h.
-                timeText = if (state.showSeconds) "%02d:%02d:%02d".format(h12raw, m, s)
-                           else "%02d:%02d".format(h12raw, m)
-                periodText = when (state.language) { Language.EN -> "AM"; Language.ZH -> "上午" }
-                showPeriod = false
-            }
-            TimeFormat.H12 -> {
-                val h12 = if (h12raw == 0) 12 else h12raw
-                timeText = if (state.showSeconds) "%02d:%02d:%02d".format(h12, m, s)
-                           else "%02d:%02d".format(h12, m)
-                // v3.7: manual mode has no AM/PM info (the dial doesn't carry
-                // that), so the period label is hidden. Master's spec: 不展示
-                // PM 就直接居中 — the speaker button then sits centered
-                // beneath the digits.
-                periodText = ""
-                showPeriod = false
-            }
-        }
-        speakH = when (state.timeFormat) {
-            TimeFormat.H24 -> h12raw
-            TimeFormat.H12 -> if (h12raw == 0) 12 else h12raw
-        }
-        speakM = m
-        speakS = s
-        speakIsPm = false // manual has no PM info
-    }
-
-    OutlinedCard(
-        // v3.6.4: back to fixed widths (Master prefers the stable visual), but
-        // sized to actually contain Fredoka 700 tabular at 56sp/80sp.
-        // Empirical measurements (see /tmp/measure.js):
-        //   56sp "12:34:56 PM" ≈ 318dp
-        //   80sp "12:34:56 PM" ≈ 454dp
-        // Phone widths capped to stay within ~360dp device frames; tablet wider.
-        // Two widths (with-seconds / without-seconds) animated by a bouncy
-        // spring give the candy-soft Q-pop when Master toggles Show s.
-        modifier = Modifier.padding(horizontal = 4.dp).width(
-            animateDpAsState(
-                targetValue = when {
-                    big && state.showSeconds  -> 500.dp
-                    big && !state.showSeconds -> 400.dp
-                    !big && state.showSeconds -> 348.dp
-                    else                      -> 268.dp
-                },
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMediumLow,
-                ),
-                label = "digitalCardWidth",
-            ).value
-        ),
-    ) {
-        // v3.7: speaker button is now inline next to AM/PM (or centered on
-        // its own line when AM/PM is hidden). Master's spec: AM/PM 旁边，没有
-        // AM/PM 就居中。
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = if (big) 16.dp else 12.dp,
-                    vertical = if (big) 22.dp else 16.dp,
-                )
-                .animateContentSize(
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessMedium,
-                    ),
-                ),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = timeText,
-                fontSize = if (big) 80.sp else 56.sp,
-                fontWeight = FontWeight.Bold,
-                color = BlueyPalette.Ink,
-                letterSpacing = 0.sp,
-                style = MaterialTheme.typography.displayLarge,
-                maxLines = 1,
-                softWrap = false,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(modifier = Modifier.height(if (big) 6.dp else 4.dp))
-            // Inline row: [AM/PM text][gap][🔊 button], centered.
-            // When AM/PM is hidden the row contains only the speaker button,
-            // so it naturally centers itself.
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                androidx.compose.animation.AnimatedVisibility(
-                    visible = showPeriod && periodText.isNotEmpty(),
-                    enter = fadeIn(animationSpec = tween(220)),
-                    exit = fadeOut(animationSpec = tween(180)),
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = periodText,
-                            fontSize = if (big) 18.sp else 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = BlueyPalette.BlueyDeep,
-                        )
-                        Spacer(modifier = Modifier.width(if (big) 10.dp else 8.dp))
-                    }
-                }
-                FilledIconButton(
-                    onClick = {
-                        tts.speakTime(
-                            hour = speakH,
-                            minute = speakM,
-                            second = speakS,
-                            // Master's call: seconds are never spoken, even in seconds mode.
-                            // The dial still shows them — the voice just stops at the minute.
-                            includeSeconds = false,
-                            format = state.timeFormat,
-                            isPm = speakIsPm,
-                            language = state.language,
-                            gender = state.voiceGender,
-                            mode = state.mode,
-                        )
-                    },
-                    modifier = Modifier.size(if (big) 40.dp else 32.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = BlueyPalette.Bluey.copy(alpha = 0.15f),
-                        contentColor = BlueyPalette.Bluey,
-                    ),
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                        contentDescription = if (state.language == Language.ZH) "播报时间" else "Speak time",
-                        modifier = Modifier.size(if (big) 22.dp else 18.dp),
-                    )
-                }
-            }
-        }
-    }
-}
-
-/* -------------------- segmented toggles -------------------- */
-
-/**
- * v3.6: shared bouncy scale for SegmentedButton selected state.
- * The active segment pops to ~1.04x with a medium-bouncy spring so kids
- * get a satisfying confirmation when they tap a toggle.
- */
-@Composable
-private fun rememberSegmentScale(selected: Boolean): androidx.compose.runtime.State<Float> =
-    animateFloatAsState(
-        targetValue = if (selected) 1.04f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMediumLow,
-        ),
-        label = "segmentScale",
-    )
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun FormatToggle(
-    value: TimeFormat,
-    onChange: (TimeFormat) -> Unit,
-    big: Boolean,
-) {
-    SingleChoiceSegmentedButtonRow(
-        modifier = Modifier.width(if (big) 260.dp else 200.dp),
-    ) {
-        TimeFormat.entries.forEachIndexed { idx, fmt ->
-            val selected = value == fmt
-            val scale by rememberSegmentScale(selected)
-            SegmentedButton(
-                selected = selected,
-                onClick = { onChange(fmt) },
-                shape = SegmentedButtonDefaults.itemShape(index = idx, count = TimeFormat.entries.size),
-                colors = SegmentedButtonDefaults.colors(
-                    activeContainerColor = BlueyPalette.BlueySoft,
-                    activeContentColor = BlueyPalette.BlueyDeep,
-                    inactiveContainerColor = BlueyPalette.BgElevated,
-                    inactiveContentColor = BlueyPalette.InkSoft,
-                ),
-                modifier = Modifier.scale(scale),
-            ) {
-                Text(text = if (fmt == TimeFormat.H12) "12h" else "24h", fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun LanguageToggle(
-    value: Language,
-    onChange: (Language) -> Unit,
-    big: Boolean,
-) {
-    SingleChoiceSegmentedButtonRow(
-        modifier = Modifier.width(if (big) 260.dp else 200.dp),
-    ) {
-        Language.entries.forEachIndexed { idx, lang ->
-            val selected = value == lang
-            val scale by rememberSegmentScale(selected)
-            SegmentedButton(
-                selected = selected,
-                onClick = { onChange(lang) },
-                shape = SegmentedButtonDefaults.itemShape(index = idx, count = Language.entries.size),
-                colors = SegmentedButtonDefaults.colors(
-                    activeContainerColor = BlueyPalette.BlueySoft,
-                    activeContentColor = BlueyPalette.BlueyDeep,
-                    inactiveContainerColor = BlueyPalette.BgElevated,
-                    inactiveContentColor = BlueyPalette.InkSoft,
-                ),
-                modifier = Modifier.scale(scale),
-            ) {
-                Text(text = if (lang == Language.ZH) "中" else "EN", fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ShowSecondsToggle(
-    value: Boolean,
-    onChange: (Boolean) -> Unit,
-    language: Language,
-    big: Boolean,
-) {
-    // Two options: ON / OFF, modeled as a SingleChoiceSegmentedButtonRow so the visual style
-    // matches the other rows exactly.
-    val options = listOf(true, false)
-    val labels = if (language == Language.ZH) listOf("显示秒", "隐藏秒") else listOf("Show s", "Hide s")
-    SingleChoiceSegmentedButtonRow(
-        modifier = Modifier.width(if (big) 260.dp else 200.dp),
-    ) {
-        options.forEachIndexed { idx, opt ->
-            val selected = value == opt
-            val scale by rememberSegmentScale(selected)
-            SegmentedButton(
-                selected = selected,
-                onClick = { onChange(opt) },
-                shape = SegmentedButtonDefaults.itemShape(index = idx, count = options.size),
-                colors = SegmentedButtonDefaults.colors(
-                    activeContainerColor = BlueyPalette.BlueySoft,
-                    activeContentColor = BlueyPalette.BlueyDeep,
-                    inactiveContainerColor = BlueyPalette.BgElevated,
-                    inactiveContentColor = BlueyPalette.InkSoft,
-                ),
-                modifier = Modifier.scale(scale),
-            ) {
-                Text(text = labels[idx], fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ModeToggle(
-    value: ClockMode,
-    onChange: (ClockMode) -> Unit,
-    language: Language,
-    big: Boolean,
-) {
-    val options = listOf(ClockMode.AUTO, ClockMode.MANUAL)
-    val labels = if (language == Language.ZH) listOf("自动", "手动") else listOf("Auto", "Manual")
-    SingleChoiceSegmentedButtonRow(
-        modifier = Modifier.width(if (big) 260.dp else 200.dp),
-    ) {
-        options.forEachIndexed { idx, opt ->
-            val selected = value == opt
-            val scale by rememberSegmentScale(selected)
-            SegmentedButton(
-                selected = selected,
-                onClick = { onChange(opt) },
-                shape = SegmentedButtonDefaults.itemShape(index = idx, count = options.size),
-                colors = SegmentedButtonDefaults.colors(
-                    activeContainerColor = BlueyPalette.BlueySoft,
-                    activeContentColor = BlueyPalette.BlueyDeep,
-                    inactiveContainerColor = BlueyPalette.BgElevated,
-                    inactiveContentColor = BlueyPalette.InkSoft,
-                ),
-                modifier = Modifier.scale(scale),
-            ) {
-                Text(text = labels[idx], fontWeight = FontWeight.Bold)
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun VoiceGenderToggle(
-    value: VoiceGender,
-    onChange: (VoiceGender) -> Unit,
-    language: Language,
-    big: Boolean,
-) {
-    // v3.7: pre-recorded voice pack persona toggle. Lives next to the other
-    // toggles so kids can flip the speaker between "girl" and "boy" voices
-    // without leaving the clock screen.
-    val options = VoiceGender.entries
-    val labelsZh = mapOf(VoiceGender.GIRL to "👧 小姐姐", VoiceGender.BOY to "👦 小哥哥")
-    val labelsEn = mapOf(VoiceGender.GIRL to "👧 Girl", VoiceGender.BOY to "👦 Boy")
-    val labels = if (language == Language.ZH) labelsZh else labelsEn
-    SingleChoiceSegmentedButtonRow(
-        modifier = Modifier.width(if (big) 260.dp else 200.dp),
-    ) {
-        options.forEachIndexed { idx, g ->
-            val selected = value == g
-            val scale by rememberSegmentScale(selected)
-            SegmentedButton(
-                selected = selected,
-                onClick = { onChange(g) },
-                shape = SegmentedButtonDefaults.itemShape(index = idx, count = options.size),
-                colors = SegmentedButtonDefaults.colors(
-                    activeContainerColor = BlueyPalette.BlueySoft,
-                    activeContentColor = BlueyPalette.BlueyDeep,
-                    inactiveContainerColor = BlueyPalette.BgElevated,
-                    inactiveContentColor = BlueyPalette.InkSoft,
-                ),
-                modifier = Modifier.scale(scale),
-            ) {
-                Text(text = labels[g] ?: "", fontWeight = FontWeight.Bold)
             }
         }
     }

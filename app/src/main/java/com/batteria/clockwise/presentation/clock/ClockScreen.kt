@@ -1,8 +1,14 @@
 package com.batteria.clockwise.presentation.clock
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -126,23 +132,41 @@ fun ClockScreenContent(
 
             // Top-start back IconButton (Material 3 FilledTonalIconButton).
             // System back gesture/key also pops the back stack; this is the
-            // explicit visual affordance Master asked for.
-            FilledTonalIconButton(
-                onClick = onBack,
+            // explicit visual affordance Master asked for. v4.2 — wrapped
+            // in AnimatedVisibility so the button bounces in when entering
+            // the workshop (matches the quiz screen's top-end controls).
+            AnimatedVisibility(
+                visible = true,
+                enter = scaleIn(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow,
+                    ),
+                    initialScale = 0.80f,
+                ) + fadeIn(animationSpec = tween(220)),
+                exit = scaleOut(
+                    animationSpec = tween(180),
+                    targetScale = 0.85f,
+                ) + fadeOut(animationSpec = tween(160)),
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .padding(start = 16.dp, top = 12.dp)
-                    .size(48.dp)
-                    .testTag("clock_back_button"),
-                colors = IconButtonDefaults.filledTonalIconButtonColors(
-                    containerColor = BlueyPalette.BlueySoft,
-                    contentColor = BlueyPalette.BlueyDeep,
-                ),
+                    .padding(start = 16.dp, top = 12.dp),
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = if (state.language == Language.ZH) "返回游戏" else "Back to game",
-                )
+                FilledTonalIconButton(
+                    onClick = onBack,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .testTag("clock_back_button"),
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = BlueyPalette.BlueySoft,
+                        contentColor = BlueyPalette.BlueyDeep,
+                    ),
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = if (state.language == Language.ZH) "返回游戏" else "Back to game",
+                    )
+                }
             }
         }
     }

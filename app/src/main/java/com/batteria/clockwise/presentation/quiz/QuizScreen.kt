@@ -8,6 +8,8 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +30,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Check
@@ -89,6 +90,35 @@ import kotlin.math.min
  */
 
 private const val QUIZ_ROUTE_CLOCK = "clock"
+
+/* -------------------- v4.2 弹性动画 helpers --------------------
+ *
+ * All UI surfaces share a single "bouncy pop" entrance and a soft exit.
+ * Centralising these keeps the screen feeling like one app instead of
+ * five different easings glued together. The spring uses
+ * DampingRatioMediumBouncy + StiffnessLow which gives the playful
+ * overshoot Master asked for without being motion-sickness territory.
+ */
+private val springFloat = spring<Float>(
+    dampingRatio = Spring.DampingRatioMediumBouncy,
+    stiffness = Spring.StiffnessLow,
+)
+private val springSize = spring<androidx.compose.ui.unit.IntSize>(
+    dampingRatio = Spring.DampingRatioMediumBouncy,
+    stiffness = Spring.StiffnessLow,
+)
+
+/** Bouncy enter — scale-up from 80 % with a fade, both spring-driven. */
+private val bounceEnter = scaleIn(
+    animationSpec = springFloat,
+    initialScale = 0.80f,
+) + fadeIn(animationSpec = tween(220))
+
+/** Soft exit — shrink back down + fade. Faster so the next thing can pop in. */
+private val softExit = scaleOut(
+    animationSpec = tween(durationMillis = 180),
+    targetScale = 0.85f,
+) + fadeOut(animationSpec = tween(160))
 
 @Composable
 fun QuizScreen(
@@ -159,57 +189,74 @@ fun QuizScreenContent(
 
             // Top-end controls: language pill + clock-workshop IconButton.
             // Two Material 3 buttons sitting in a Row, anchored TopEnd, so
-            // they slide together with the system insets.
-            Row(
+            // they slide together with the system insets. v4.2 — the whole
+            // row pops in on first composition for the bouncy entrance.
+            AnimatedVisibility(
+                visible = true,
+                enter = bounceEnter,
+                exit = softExit,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(end = 16.dp, top = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                // v4.1 — language flip. FilledTonalIconButton with a glyph
-                // showing the *other* language (tap-to-switch convention).
-                val otherLang = if (state.language == Language.ZH) Language.EN else Language.ZH
-                val glyph = if (otherLang == Language.ZH) "中" else "EN"
-                FilledTonalIconButton(
-                    onClick = { onLanguageChange(otherLang) },
-                    modifier = Modifier
-                        .size(48.dp)
-                        .testTag("quiz_language_toggle"),
-                    colors = IconButtonDefaults.filledTonalIconButtonColors(
-                        containerColor = BlueyPalette.BlueySoft,
-                        contentColor = BlueyPalette.BlueyDeep,
-                    ),
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    // We use a Text glyph (not a vector icon) because the
-                    // characters '中' / 'EN' communicate the destination
-                    // language far more directly than a globe icon would
-                    // to a 4–7-year-old. Still a Material 3 IconButton
-                    // container, so the touch target / ripple match the
-                    // other top-end controls.
-                    Text(
-                        text = glyph,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = if (glyph.length == 1) 18.sp else 14.sp,
-                    )
-                }
+                    // v4.1 — language flip. FilledTonalIconButton with a glyph
+                    // showing the *other* language (tap-to-switch convention).
+                    val otherLang = if (state.language == Language.ZH) Language.EN else Language.ZH
+                    // v4.2 — AnimatedContent swaps the glyph with a spring scale so
+                    // the user *sees* the flip rather than the letter just morphing.
+                    AnimatedContent(
+                        targetState = otherLang,
+                        transitionSpec = {
+                            (scaleIn(springFloat, initialScale = 0.6f) + fadeIn(tween(200)))
+                                .togetherWith(
+                                    scaleOut(tween(160), targetScale = 0.6f) + fadeOut(tween(160))
+                                )
+                        },
+                        label = "language_glyph",
+                    ) { dest ->
+                        val glyph = if (dest == Language.ZH) "中" else "EN"
+                        FilledTonalIconButton(
+                            onClick = { onLanguageChange(dest) },
+                            modifier = Modifier
+                                .size(48.dp)
+                                .testTag("quiz_language_toggle"),
+                            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                containerColor = BlueyPalette.BlueySoft,
+                                contentColor = BlueyPalette.BlueyDeep,
+                            ),
+                        ) {
+                            // Text glyph instead of a vector icon — '中' / 'EN'
+                            // communicates the destination language more directly
+                            // to a 4–7-year-old than a globe would.
+                            Text(
+                                text = glyph,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = if (glyph.length == 1) 18.sp else 14.sp,
+                            )
+                        }
+                    }
 
-                // Material 3 FilledTonalIconButton, matches the back button
-                // on the clock screen for visual symmetry.
-                FilledTonalIconButton(
-                    onClick = onOpenClock,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .testTag("quiz_open_clock_button"),
-                    colors = IconButtonDefaults.filledTonalIconButtonColors(
-                        containerColor = BlueyPalette.BlueySoft,
-                        contentColor = BlueyPalette.BlueyDeep,
-                    ),
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.AccessTime,
-                        contentDescription = QuizSpeech.openClockHint(state.language),
-                    )
+                    // Material 3 FilledTonalIconButton, matches the back button
+                    // on the clock screen for visual symmetry.
+                    FilledTonalIconButton(
+                        onClick = onOpenClock,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .testTag("quiz_open_clock_button"),
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = BlueyPalette.BlueySoft,
+                            contentColor = BlueyPalette.BlueyDeep,
+                        ),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.AccessTime,
+                            contentDescription = QuizSpeech.openClockHint(state.language),
+                        )
+                    }
                 }
             }
         }
@@ -233,18 +280,35 @@ private fun PortraitQuizLayout(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(modifier = Modifier.weight(0.12f))
-        QuestionHeader(state = state, onSpeak = onSpeak, big = isTablet)
+        AnimatedVisibility(visible = true, enter = bounceEnter, exit = softExit) {
+            QuestionHeader(state = state, onSpeak = onSpeak, big = isTablet)
+        }
         Spacer(modifier = Modifier.height(if (isTablet) 24.dp else 16.dp))
 
-        AnalogClockFace(
-            time = ClockTime.Static(hour = state.targetHour, minute = state.targetMinute),
-            showSeconds = false,
-            onManualDelta = null,
+        // v4.2 — swap the clock face with a spring scale when the question
+        // changes so the new time pops in instead of jump-cutting.
+        AnimatedContent(
+            targetState = state.targetHour to state.targetMinute,
+            transitionSpec = {
+                (scaleIn(springFloat, initialScale = 0.85f) + fadeIn(tween(240)))
+                    .togetherWith(
+                        scaleOut(tween(180), targetScale = 0.92f) + fadeOut(tween(160))
+                    )
+            },
+            label = "quiz_clock_swap",
             modifier = Modifier
                 .fillMaxWidth(if (isTablet) 0.66f else 0.78f)
-                .aspectRatio(1f)
-                .testTag("quiz_clock_face"),
-        )
+                .aspectRatio(1f),
+        ) { (h, m) ->
+            AnalogClockFace(
+                time = ClockTime.Static(hour = h, minute = m),
+                showSeconds = false,
+                onManualDelta = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .testTag("quiz_clock_face"),
+            )
+        }
 
         Spacer(modifier = Modifier.weight(0.06f))
 
@@ -282,22 +346,37 @@ private fun LandscapeQuizLayout(
             modifier = Modifier.weight(1f).fillMaxHeight(),
             contentAlignment = Alignment.Center,
         ) {
-            AnalogClockFace(
-                time = ClockTime.Static(hour = state.targetHour, minute = state.targetMinute),
-                showSeconds = false,
-                onManualDelta = null,
+            AnimatedContent(
+                targetState = state.targetHour to state.targetMinute,
+                transitionSpec = {
+                    (scaleIn(springFloat, initialScale = 0.85f) + fadeIn(tween(240)))
+                        .togetherWith(
+                            scaleOut(tween(180), targetScale = 0.92f) + fadeOut(tween(160))
+                        )
+                },
+                label = "quiz_clock_swap_land",
                 modifier = Modifier
                     .fillMaxHeight(0.86f)
-                    .aspectRatio(1f)
-                    .testTag("quiz_clock_face"),
-            )
+                    .aspectRatio(1f),
+            ) { (h, m) ->
+                AnalogClockFace(
+                    time = ClockTime.Static(hour = h, minute = m),
+                    showSeconds = false,
+                    onManualDelta = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .testTag("quiz_clock_face"),
+                )
+            }
         }
         Column(
             modifier = Modifier.weight(1.1f).fillMaxHeight(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            QuestionHeader(state = state, onSpeak = onSpeak, big = isTablet)
+            AnimatedVisibility(visible = true, enter = bounceEnter, exit = softExit) {
+                QuestionHeader(state = state, onSpeak = onSpeak, big = isTablet)
+            }
             Spacer(modifier = Modifier.height(if (isTablet) 20.dp else 14.dp))
             ChoicesGrid(
                 state = state,
@@ -386,7 +465,6 @@ private fun ChoicesGrid(
                 ),
                 label = "choice_scale_$idx",
             )
-
             val container: Color
             val content: Color
             when {
@@ -404,24 +482,41 @@ private fun ChoicesGrid(
                 }
             }
 
-            ElevatedButton(
-                onClick = { if (state.phase == QuizPhase.AwaitingAnswer) onPick(idx) },
-                modifier = Modifier
-                    .weight(1f)
-                    .height(if (big) 76.dp else 60.dp)
-                    .scale(scale)
-                    .testTag(tag),
-                shape = RoundedCornerShape(percent = 35),
-                colors = androidx.compose.material3.ButtonDefaults.elevatedButtonColors(
-                    containerColor = container,
-                    contentColor = content,
-                ),
+            // v4.2 — spring-pop each choice into view, staggered ~70 ms apart
+            // so the three options cascade in rather than slamming together.
+            // Using the RowScope overload directly with .weight(1f) so the
+            // animated container itself participates in the Row layout.
+            AnimatedVisibility(
+                visible = true,
+                enter = scaleIn(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow,
+                    ),
+                    initialScale = 0.5f,
+                ) + fadeIn(animationSpec = tween(durationMillis = 240, delayMillis = idx * 70)),
+                exit = softExit,
+                modifier = Modifier.weight(1f),
             ) {
-                Text(
-                    text = choice.display(state.timeFormat),
-                    fontSize = if (big) 26.sp else 22.sp,
-                    fontWeight = FontWeight.Bold,
-                )
+                ElevatedButton(
+                    onClick = { if (state.phase == QuizPhase.AwaitingAnswer) onPick(idx) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(if (big) 76.dp else 60.dp)
+                        .scale(scale)
+                        .testTag(tag),
+                    shape = RoundedCornerShape(percent = 35),
+                    colors = androidx.compose.material3.ButtonDefaults.elevatedButtonColors(
+                        containerColor = container,
+                        contentColor = content,
+                    ),
+                ) {
+                    Text(
+                        text = choice.display(state.timeFormat),
+                        fontSize = if (big) 26.sp else 22.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
         }
     }
@@ -431,10 +526,15 @@ private fun ChoicesGrid(
 
 @Composable
 private fun ResultBanner(state: QuizUiState, onNext: () -> Unit, big: Boolean) {
+    // v4.2 — swap with a springy scale-in instead of a flat fade so the
+    // banner / FAB *pops* the moment the kid commits. Exit shrinks softly.
     AnimatedContent(
         targetState = state.phase to (state.pickedIndex == state.correctIndex),
         transitionSpec = {
-            fadeIn(animationSpec = tween(220)) togetherWith fadeOut(animationSpec = tween(180))
+            (scaleIn(springFloat, initialScale = 0.6f) + fadeIn(tween(220)))
+                .togetherWith(
+                    scaleOut(tween(180), targetScale = 0.85f) + fadeOut(tween(160))
+                )
         },
         label = "result_banner",
     ) { (phase, isCorrect) ->
@@ -468,19 +568,17 @@ private fun ResultBanner(state: QuizUiState, onNext: () -> Unit, big: Boolean) {
                 }
             }
             phase == QuizPhase.Revealed && !isCorrect -> {
+                // v4.2 — dropped the leading "→" arrow icon + arrow glyph per
+                // Master's request. The FAB itself is the affordance; the
+                // wording "再试一次 · 下一题" / "Try again · Next" reads cleaner.
                 ExtendedFloatingActionButton(
                     onClick = onNext,
                     containerColor = BlueyPalette.Bluey,
                     contentColor = Color.White,
                     modifier = Modifier.testTag("quiz_next_button"),
                 ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "${QuizSpeech.wrong(state.language)}  →  ${QuizSpeech.nextQuestion(state.language)}",
+                        text = "${QuizSpeech.wrong(state.language)}  ·  ${QuizSpeech.nextQuestion(state.language)}",
                         fontWeight = FontWeight.Bold,
                     )
                 }

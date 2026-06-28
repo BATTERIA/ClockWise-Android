@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ClockWise Android — 产品提案</title>
+<title>ClockWise Android — Product Proposal</title>
 <style>
 :root {
   --indigo: #3F51B5;
@@ -54,195 +54,195 @@ pre { background: #263238; color: #EEFFFF; padding: 20px; border-radius: 8px; ov
 
 <div class="hero">
   <h1>🕐 ClockWise</h1>
-  <p>儿童时钟学习App — Android版产品提案</p>
+  <p>Clock-learning app for kids — Android product proposal</p>
   <span class="badge">Android • Kotlin • Jetpack Compose</span>
 </div>
 
 <div class="container">
 
 <nav class="toc">
-  <h2>📋 目录 Table of Contents</h2>
+  <h2>📋 Table of Contents</h2>
   <ol>
-    <li><a href="#positioning">产品定位 Product Positioning</a></li>
-    <li><a href="#curriculum">学习内容体系 Curriculum</a></li>
-    <li><a href="#quiz">练习题系统 Quiz System</a></li>
-    <li><a href="#interactive">互动与趣味模块 Interactive Modules</a></li>
-    <li><a href="#bilingual">双语支持 Bilingual Support</a></li>
-    <li><a href="#parent">家长/教师系统 Parent/Teacher System</a></li>
-    <li><a href="#rewards">奖励系统 Rewards System</a></li>
-    <li><a href="#ux">UI/UX设计原则 Design Principles</a></li>
-    <li><a href="#tech">技术方案 Technical Architecture</a></li>
-    <li><a href="#business">项目定位 Project Values</a></li>
-    <li><a href="#accessibility">无障碍支持 Accessibility</a></li>
-    <li><a href="#culture">文化与时区教学 Culture & Timezone</a></li>
-    <li><a href="#milestones">项目里程碑 Milestones</a></li>
-    <li><a href="#competitive">竞品差异化 Competitive Edge</a></li>
+    <li><a href="#positioning">Product Positioning</a></li>
+    <li><a href="#curriculum">Curriculum</a></li>
+    <li><a href="#quiz">Quiz System</a></li>
+    <li><a href="#interactive">Interactive Modules</a></li>
+    <li><a href="#bilingual">Bilingual Support</a></li>
+    <li><a href="#parent">Parent / Teacher System</a></li>
+    <li><a href="#rewards">Rewards System</a></li>
+    <li><a href="#ux">UI / UX Design Principles</a></li>
+    <li><a href="#tech">Technical Architecture</a></li>
+    <li><a href="#business">Project Values</a></li>
+    <li><a href="#accessibility">Accessibility</a></li>
+    <li><a href="#culture">Culture &amp; Timezone</a></li>
+    <li><a href="#milestones">Milestones</a></li>
+    <li><a href="#competitive">Competitive Edge</a></li>
   </ol>
 </nav>
 
 <section id="positioning">
-  <h2>1. 产品定位 Product Positioning</h2>
+  <h2>1. Product Positioning</h2>
   <div class="highlight">
-    <strong>ClockWise</strong> — 一款专为4-10岁儿童设计的时钟学习应用，通过互动动画、游戏化练习和故事驱动，让孩子在玩乐中掌握时间概念。
+    <strong>ClockWise</strong> — a clock-learning app designed specifically for children ages 4–10. Interactive animations, gamified practice, and story-driven content help kids master the concept of time while they play.
   </div>
   <div class="grid">
-    <div class="grid-card"><h4>📱 Platform</h4><p>Android (Tablet优先，Phone兼容)</p></div>
-    <div class="grid-card"><h4>🌍 Language</h4><p>Chinese + English 双语 (默认English)</p></div>
-    <div class="grid-card"><h4>👶 Target</h4><p>4-10岁儿童及家长/教师</p></div>
-    <div class="grid-card"><h4>🎯 Goal</h4><p>让每个孩子轻松学会看时钟</p></div>
+    <div class="grid-card"><h4>📱 Platform</h4><p>Android (tablet-first, phone-compatible)</p></div>
+    <div class="grid-card"><h4>🌍 Language</h4><p>Chinese + English bilingual (English by default)</p></div>
+    <div class="grid-card"><h4>👶 Target</h4><p>Children ages 4–10, plus their parents and teachers</p></div>
+    <div class="grid-card"><h4>🎯 Goal</h4><p>Make it easy for every kid to learn to read a clock</p></div>
   </div>
 </section>
 
 <section id="curriculum">
-  <h2>2. 学习内容体系 Curriculum</h2>
-  <h3>⏰ 时钟类型认知</h3>
+  <h2>2. Curriculum</h2>
+  <h3>⏰ Clock types</h3>
   <div class="grid">
-    <div class="grid-card"><h4>模拟指针钟</h4><p>经典时钟，时/分/秒针动画</p></div>
-    <div class="grid-card"><h4>数字时钟</h4><p>LED风格数字显示</p></div>
-    <div class="grid-card"><h4>沙漏</h4><p>时间流逝的直观表达</p></div>
-    <div class="grid-card"><h4>日晷</h4><p>太阳与影子的关系</p></div>
-    <div class="grid-card"><h4>翻页钟</h4><p>复古翻页动画</p></div>
-    <div class="grid-card"><h4>怀表</h4><p>历史与工艺之美</p></div>
+    <div class="grid-card"><h4>Analog clock</h4><p>Classic dial, hour/minute/second hand animation</p></div>
+    <div class="grid-card"><h4>Digital clock</h4><p>LED-style numeric display</p></div>
+    <div class="grid-card"><h4>Hourglass</h4><p>Visual sense of time passing</p></div>
+    <div class="grid-card"><h4>Sundial</h4><p>Relationship between sun and shadow</p></div>
+    <div class="grid-card"><h4>Flip clock</h4><p>Retro flip-card animation</p></div>
+    <div class="grid-card"><h4>Pocket watch</h4><p>History and craftsmanship</p></div>
   </div>
 
-  <h3>📚 分阶段课程 L1-L4</h3>
+  <h3>📚 Staged curriculum (L1–L4)</h3>
   <table>
-    <tr><th>Level</th><th>内容</th><th>目标年龄</th></tr>
-    <tr><td>L1 整点</td><td>认识1-12点整</td><td>4-5岁</td></tr>
-    <tr><td>L2 半点</td><td>半点、一刻</td><td>5-6岁</td></tr>
-    <tr><td>L3 任意分钟</td><td>精确到分钟</td><td>7-8岁</td></tr>
-    <tr><td>L4 时区</td><td>世界时间、AM/PM、24h</td><td>9-10岁</td></tr>
+    <tr><th>Level</th><th>Content</th><th>Target age</th></tr>
+    <tr><td>L1 — Hour</td><td>Recognize 1–12 o'clock on the hour</td><td>4–5</td></tr>
+    <tr><td>L2 — Half-hour</td><td>Half-hours and quarters</td><td>5–6</td></tr>
+    <tr><td>L3 — Any minute</td><td>Minute-level precision</td><td>7–8</td></tr>
+    <tr><td>L4 — Timezones</td><td>World time, AM/PM, 24h</td><td>9–10</td></tr>
   </table>
 
-  <h3>🔊 语音引导系统</h3>
+  <h3>🔊 Voice-guidance system</h3>
   <ul>
-    <li>Android TTS (TextToSpeech) 引擎驱动</li>
-    <li>操作引导 — 告诉孩子下一步做什么</li>
-    <li>读题 — 朗读题目内容</li>
-    <li>反馈 — 鼓励与纠正</li>
+    <li>Powered by Android TTS (TextToSpeech)</li>
+    <li>Action guidance — tell the child what to do next</li>
+    <li>Read-aloud — speak the question content</li>
+    <li>Feedback — encouragement and correction</li>
   </ul>
 
-  <h3>🎮 渐进式界面 Progressive UI</h3>
-  <p>根据学习进度逐步解锁界面元素，避免信息过载。低Level只显示核心功能，高Level解锁高级工具。</p>
+  <h3>🎮 Progressive UI</h3>
+  <p>UI elements unlock gradually based on learning progress, avoiding information overload. Lower levels expose only core features; higher levels unlock advanced tools.</p>
 
-  <h3>📅 时间与日历概念</h3>
+  <h3>📅 Time & calendar concepts</h3>
   <ul>
-    <li>星期 (Monday-Sunday)</li>
-    <li>月份与季节</li>
-    <li>时间单位 (秒→分→时→天→周→月→年)</li>
-    <li>时间顺序词 (before, after, earlier, later)</li>
-    <li>时间基础概念动画教学</li>
+    <li>Days of the week (Monday–Sunday)</li>
+    <li>Months and seasons</li>
+    <li>Units of time (second → minute → hour → day → week → month → year)</li>
+    <li>Temporal ordering words (before, after, earlier, later)</li>
+    <li>Animated teaching of basic time concepts</li>
   </ul>
 
-  <h3>🌍 时区模块</h3>
+  <h3>🌍 Timezone module</h3>
   <ul>
-    <li>世界地图交互 — 点击城市查看当地时间</li>
-    <li>日夜动画 — 地球自转与昼夜变化</li>
-    <li>生活情境 — "北京早上8点，纽约几点？"</li>
+    <li>Interactive world map — tap a city to see local time</li>
+    <li>Day/night animation — Earth's rotation and the day/night cycle</li>
+    <li>Real-life scenarios — "It's 8am in Beijing — what time is it in New York?"</li>
   </ul>
 </section>
 
 <section id="quiz">
-  <h2>3. 练习题系统 Quiz System</h2>
-  <h3>9种题型</h3>
+  <h2>3. Quiz System</h2>
+  <h3>9 question types</h3>
   <div class="grid">
-    <div class="grid-card"><h4>1. 看钟读时</h4><p>看指针回答时间</p></div>
-    <div class="grid-card"><h4>2. 拨钟设时</h4><p>拖动指针设定时间</p></div>
-    <div class="grid-card"><h4>3. 时间匹配</h4><p>连线配对</p></div>
-    <div class="grid-card"><h4>4. 时间排序</h4><p>按先后顺序排列</p></div>
-    <div class="grid-card"><h4>5. 时间计算</h4><p>"再过30分钟是几点？"</p></div>
-    <div class="grid-card"><h4>6. 选择题</h4><p>多选一</p></div>
-    <div class="grid-card"><h4>7. 填空题</h4><p>输入正确时间</p></div>
-    <div class="grid-card"><h4>8. 判断题</h4><p>对/错判断</p></div>
-    <div class="grid-card"><h4>9. 情境题</h4><p>日常生活场景应用</p></div>
+    <div class="grid-card"><h4>1. Read the clock</h4><p>Look at the hands and answer the time</p></div>
+    <div class="grid-card"><h4>2. Set the clock</h4><p>Drag the hands to set a given time</p></div>
+    <div class="grid-card"><h4>3. Time matching</h4><p>Match-up / connect-the-pairs</p></div>
+    <div class="grid-card"><h4>4. Time ordering</h4><p>Arrange events in chronological order</p></div>
+    <div class="grid-card"><h4>5. Time arithmetic</h4><p>"What time will it be in 30 minutes?"</p></div>
+    <div class="grid-card"><h4>6. Multiple choice</h4><p>Pick one of several options</p></div>
+    <div class="grid-card"><h4>7. Fill-in-the-blank</h4><p>Type the correct time</p></div>
+    <div class="grid-card"><h4>8. True/false</h4><p>Right or wrong</p></div>
+    <div class="grid-card"><h4>9. Scenario</h4><p>Apply time to everyday situations</p></div>
   </div>
   <div class="highlight">
-    <strong>智能特性：</strong>自动生成逻辑 (基于当前Level动态出题) + 间隔重复算法 (优先复习薄弱知识点)
+    <strong>Smart features:</strong> auto-generation logic (questions adapt to the current level) + spaced-repetition algorithm (prioritize the kid's weak spots).
   </div>
 </section>
 
 <section id="interactive">
-  <h2>4. 互动与趣味模块 Interactive Modules</h2>
-  <h3>🎮 小游戏</h3>
+  <h2>4. Interactive Modules</h2>
+  <h3>🎮 Mini-games</h3>
   <ul>
-    <li>时间赛跑 — 限时答题挑战</li>
-    <li>时钟拼图 — 组装时钟零件</li>
-    <li>日程规划师 — 为角色安排一天</li>
+    <li>Time race — timed answering challenge</li>
+    <li>Clock jigsaw — assemble clock parts</li>
+    <li>Schedule designer — plan a day for a character</li>
   </ul>
-  <h3>📖 故事系统</h3>
+  <h3>📖 Story system</h3>
   <ul>
-    <li>时间冒险家 — 穿越不同时代学习时间工具</li>
-    <li>迟到的兔子 — 帮助角色准时到达</li>
-    <li>故事中嵌入练习题，边读边学</li>
+    <li>Time adventurer — travel through different eras to learn timekeeping tools</li>
+    <li>The late rabbit — help the character arrive on time</li>
+    <li>Practice questions embedded in stories — learn while reading</li>
   </ul>
-  <h3>🎨 创意互动</h3>
+  <h3>🎨 Creative interaction</h3>
   <ul>
-    <li>设计我的时钟 — 自定义表盘</li>
-    <li>时间日记 — 记录每天做了什么</li>
+    <li>Design my own clock — custom dial</li>
+    <li>Time diary — log what was done each day</li>
   </ul>
 </section>
 
 <section id="bilingual">
-  <h2>5. 双语支持 Bilingual Support</h2>
+  <h2>5. Bilingual Support</h2>
   <ul>
-    <li>界面+语音同步切换 (一键切换中/英)</li>
-    <li>多种时间表达方式：
+    <li>UI and voice swap together (one-tap toggle between Chinese and English)</li>
+    <li>Multiple time expressions:
       <ul>
         <li>English: "half past three", "quarter to five", "3:30 PM"</li>
-        <li>中文: "三点半", "差一刻五点", "下午3:30"</li>
+        <li>Chinese: "三点半", "差一刻五点", "下午3:30"</li>
       </ul>
     </li>
-    <li>Android Resources (strings.xml) 实现国际化</li>
-    <li>TTS语音自动匹配当前语言</li>
+    <li>Internationalization via Android Resources (<code>strings.xml</code>)</li>
+    <li>TTS voice automatically matches the current language</li>
   </ul>
 </section>
 
 <section id="parent">
-  <h2>6. 家长/教师系统 Parent/Teacher System</h2>
+  <h2>6. Parent / Teacher System</h2>
   <div class="grid">
-    <div class="grid-card"><h4>📊 进度报告</h4><p>学习时长、正确率、知识点掌握度</p></div>
-    <div class="grid-card"><h4>🎚️ 难度调节</h4><p>手动/自动调整难度级别</p></div>
-    <div class="grid-card"><h4>👨‍👩‍👧‍👦 多用户</h4><p>一台设备支持多个孩子档案</p></div>
-    <div class="grid-card"><h4>⏰ 学习提醒</h4><p>自定义学习时间通知</p></div>
+    <div class="grid-card"><h4>📊 Progress reports</h4><p>Study time, accuracy, mastery per topic</p></div>
+    <div class="grid-card"><h4>🎚️ Difficulty control</h4><p>Manual or automatic level adjustment</p></div>
+    <div class="grid-card"><h4>👨‍👩‍👧‍👦 Multi-user</h4><p>One device, multiple kid profiles</p></div>
+    <div class="grid-card"><h4>⏰ Study reminders</h4><p>Customizable study-time notifications</p></div>
   </div>
 </section>
 
 <section id="rewards">
-  <h2>7. 奖励系统 Rewards System</h2>
+  <h2>7. Rewards System</h2>
   <ul>
-    <li>⭐ 星星积分 — 完成练习获得星星</li>
-    <li>🏅 成就徽章 — 里程碑解锁特殊徽章</li>
-    <li>🐱 解锁角色 — 积分兑换新伙伴</li>
-    <li>🔥 连续学习奖励 — 每日打卡额外奖励</li>
+    <li>⭐ Star points — earn stars by completing practice</li>
+    <li>🏅 Achievement badges — milestones unlock special badges</li>
+    <li>🐱 Unlockable characters — trade points for new companions</li>
+    <li>🔥 Streak bonuses — extra rewards for daily check-ins</li>
   </ul>
 </section>
 
 <section id="ux">
-  <h2>8. UI/UX设计原则 Design Principles</h2>
+  <h2>8. UI / UX Design Principles</h2>
   <div class="grid">
-    <div class="grid-card"><h4>Material Design 3</h4><p>遵循MD3规范，动态配色</p></div>
-    <div class="grid-card"><h4>卡通风格</h4><p>友好、温暖的视觉语言</p></div>
-    <div class="grid-card"><h4>大触摸区域</h4><p>最小48dp触摸目标</p></div>
-    <div class="grid-card"><h4>零广告</h4><p>纯净无干扰学习环境</p></div>
+    <div class="grid-card"><h4>Material Design 3</h4><p>Follows the M3 spec with dynamic color</p></div>
+    <div class="grid-card"><h4>Cartoon style</h4><p>Friendly, warm visual language</p></div>
+    <div class="grid-card"><h4>Large touch targets</h4><p>Minimum 48dp tap targets</p></div>
+    <div class="grid-card"><h4>Zero ads</h4><p>Clean, distraction-free learning environment</p></div>
   </div>
 </section>
 
 <section id="tech">
-  <h2>9. 技术方案 Technical Architecture</h2>
-  <h3>技术选型</h3>
+  <h2>9. Technical Architecture</h2>
+  <h3>Tech choices</h3>
   <table>
-    <tr><th>模块</th><th>技术选型</th></tr>
-    <tr><td>主框架</td><td>Kotlin + Jetpack Compose</td></tr>
-    <tr><td>动画</td><td>Compose Animation + Lottie</td></tr>
-    <tr><td>国际化</td><td>Android Resources (strings.xml)</td></tr>
-    <tr><td>数据存储</td><td>DataStore / Room</td></tr>
-    <tr><td>语音</td><td>Android TTS (TextToSpeech)</td></tr>
-    <tr><td>架构</td><td>MVVM + Clean Architecture</td></tr>
+    <tr><th>Module</th><th>Choice</th></tr>
+    <tr><td>Main framework</td><td>Kotlin + Jetpack Compose</td></tr>
+    <tr><td>Animation</td><td>Compose Animation + Lottie</td></tr>
+    <tr><td>i18n</td><td>Android Resources (<code>strings.xml</code>)</td></tr>
+    <tr><td>Persistence</td><td>DataStore / Room</td></tr>
+    <tr><td>Voice</td><td>Android TTS (TextToSpeech)</td></tr>
+    <tr><td>Architecture</td><td>MVVM + Clean Architecture</td></tr>
     <tr><td>DI</td><td>Hilt</td></tr>
-    <tr><td>导航</td><td>Navigation Compose</td></tr>
+    <tr><td>Navigation</td><td>Navigation Compose</td></tr>
   </table>
 
-  <h3>架构设计 (MVVM + Clean)</h3>
+  <h3>Architecture (MVVM + Clean)</h3>
   <pre>
 app/
   di/              — Hilt modules
@@ -264,70 +264,69 @@ app/
 </section>
 
 <section id="business">
-  <h2>10. 项目定位 Project Values</h2>
+  <h2>10. Project Values</h2>
   <div class="highlight">
-    <strong>核心理念：</strong>开源、免费、纯粋为了教育。不以盈利为目的，让每个孩子都能用上优质的学习工具。
+    <strong>Core principle:</strong> open-source, free, purely for education. Not driven by profit — every child deserves a quality learning tool.
   </div>
   <ul>
-    <li>✅ 100% 免费 — 所有功能永久免费</li>
-    <li>🚫 无广告 — 绝不向儿童展示广告</li>
-    <li>🚫 无内购 — 不设任何付费解锁</li>
-    <li>☕️ 可选打赏 — 未来可能提供 Buy Me a Coffee 供喜欢项目的用户支持</li>
-    <li>🔓 开源 — 代码公开，欢迎贡献</li>
-    <li>♿ 无障碍优先 — 所有无障碍功能有同等优先级</li>
-    <li>🔒 COPPA合规 — 严格遵守儿童隐私保护法规，不收集个人数据</li>
+    <li>✅ 100% free — every feature, forever</li>
+    <li>🚫 No ads — never show ads to kids</li>
+    <li>🚫 No in-app purchases — nothing locked behind a paywall</li>
+    <li>🔓 Open source — code in the open, contributions welcome</li>
+    <li>♿ Accessibility-first — every accessibility feature is treated as a first-class priority</li>
+    <li>🔒 COPPA-compliant — strict adherence to child-privacy regulations; no personal data collected</li>
   </ul>
 </section>
 
 <section id="accessibility">
-  <h2>11. 无障碍支持 Accessibility</h2>
+  <h2>11. Accessibility</h2>
   <ul>
-    <li>TalkBack全覆盖 — 所有界面元素有语义描述</li>
-    <li>高对比度模式 — 可选高对比度配色方案</li>
-    <li>大字体支持 — 尊重系统字体缩放</li>
-    <li>色盲友好 — 不依赖颜色传递关键信息</li>
-    <li>大触摸区域 — 最小48dp×48dp触摸目标</li>
+    <li>Full TalkBack coverage — every UI element has a semantic description</li>
+    <li>High-contrast mode — optional high-contrast color scheme</li>
+    <li>Large text — respects the system font-scale setting</li>
+    <li>Colorblind-friendly — never relies on color alone to convey key information</li>
+    <li>Large touch targets — minimum 48dp × 48dp</li>
   </ul>
 </section>
 
 <section id="culture">
-  <h2>12. 文化与时区教学 Culture & Timezone</h2>
-  <h3>🌏 世界文化中的时间</h3>
+  <h2>12. Culture &amp; Timezone</h2>
+  <h3>🌏 Time across world cultures</h3>
   <ul>
-    <li>不同文化如何计时（中国十二时辰、古埃及、日本和时计）</li>
-    <li>节日与时间（春节倒计时、新年跨年）</li>
+    <li>How different cultures kept time (China's twelve double-hours, ancient Egypt, Japan's wadokei)</li>
+    <li>Festivals and time (Spring Festival countdown, New Year's Eve)</li>
   </ul>
-  <h3>🕐 时区深度学习</h3>
+  <h3>🕐 Deep-dive on timezones</h3>
   <ul>
-    <li>互动世界地图，实时显示各城市时间</li>
-    <li>日夜线动画，理解地球自转</li>
-    <li>生活情境对话："和外国朋友视频几点合适？"</li>
+    <li>Interactive world map with live local time for each city</li>
+    <li>Day/night terminator animation to explain Earth's rotation</li>
+    <li>Real-life dialogues: "What's a good time to video-call a friend abroad?"</li>
   </ul>
-  <h3>🗣️ 多语言时间表达</h3>
+  <h3>🗣️ Multilingual time expressions</h3>
   <ul>
-    <li>比较中英文时间表达差异</li>
-    <li>趣味翻译小游戏</li>
+    <li>Compare how Chinese and English express the same time</li>
+    <li>Fun translation mini-games</li>
   </ul>
 </section>
 
 <section id="milestones">
-  <h2>13. 项目里程碑 Milestones</h2>
-  <div class="milestone"><span class="milestone-dot"></span><strong>M1 (Week 1-4):</strong>&nbsp;项目架构搭建、基础UI、时钟渲染</div>
-  <div class="milestone"><span class="milestone-dot"></span><strong>M2 (Week 5-8):</strong>&nbsp;L1-L2课程、练习题系统、TTS集成</div>
-  <div class="milestone"><span class="milestone-dot"></span><strong>M3 (Week 9-12):</strong>&nbsp;L3-L4课程、小游戏、奖励系统</div>
-  <div class="milestone"><span class="milestone-dot"></span><strong>M4 (Week 13-16):</strong>&nbsp;故事系统、家长面板、双语完善</div>
-  <div class="milestone"><span class="milestone-dot"></span><strong>M5 (Week 17-20):</strong>&nbsp;时区模块、无障碍优化、Beta测试、上线</div>
+  <h2>13. Milestones</h2>
+  <div class="milestone"><span class="milestone-dot"></span><strong>M1 (Week 1–4):</strong>&nbsp;Project skeleton, base UI, clock rendering</div>
+  <div class="milestone"><span class="milestone-dot"></span><strong>M2 (Week 5–8):</strong>&nbsp;L1–L2 curriculum, quiz system, TTS integration</div>
+  <div class="milestone"><span class="milestone-dot"></span><strong>M3 (Week 9–12):</strong>&nbsp;L3–L4 curriculum, mini-games, rewards system</div>
+  <div class="milestone"><span class="milestone-dot"></span><strong>M4 (Week 13–16):</strong>&nbsp;Story system, parent panel, bilingual polish</div>
+  <div class="milestone"><span class="milestone-dot"></span><strong>M5 (Week 17–20):</strong>&nbsp;Timezone module, accessibility pass, beta, launch</div>
 </section>
 
 <section id="competitive">
-  <h2>14. 竞品差异化 Competitive Edge</h2>
+  <h2>14. Competitive Edge</h2>
   <div class="grid">
-    <div class="grid-card"><h4>📖 故事驱动</h4><p>不是枯燥练习，而是有趣冒险</p></div>
-    <div class="grid-card"><h4>🌍 时区教学</h4><p>唯一深度教授时区概念的儿童App</p></div>
-    <div class="grid-card"><h4>🌐 真正双语</h4><p>不是翻译，是原生双语体验</p></div>
-    <div class="grid-card"><h4>🧠 智能练习</h4><p>间隔重复+自适应难度</p></div>
-    <div class="grid-card"><h4>♿ 无障碍优先</h4><p>从设计之初就考虑所有孩子</p></div>
-    <div class="grid-card"><h4>🎭 文化多元</h4><p>融入世界各地的时间文化</p></div>
+    <div class="grid-card"><h4>📖 Story-driven</h4><p>Not a dull drill — a fun adventure</p></div>
+    <div class="grid-card"><h4>🌍 Timezone teaching</h4><p>The only kids' app that really teaches timezones in depth</p></div>
+    <div class="grid-card"><h4>🌐 Truly bilingual</h4><p>Not a translation layer — a native bilingual experience</p></div>
+    <div class="grid-card"><h4>🧠 Smart practice</h4><p>Spaced repetition + adaptive difficulty</p></div>
+    <div class="grid-card"><h4>♿ Accessibility-first</h4><p>Designed for every kid from day one</p></div>
+    <div class="grid-card"><h4>🎭 Cultural variety</h4><p>Weaves in time-keeping from around the world</p></div>
   </div>
 </section>
 

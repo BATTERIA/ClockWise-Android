@@ -91,7 +91,7 @@ import kotlin.math.min
 
 private const val QUIZ_ROUTE_CLOCK = "clock"
 
-/* -------------------- v4.2 弹性动画 helpers --------------------
+/* -------------------- v4.2 spring-animation helpers --------------------
  *
  * All UI surfaces share a single "bouncy pop" entrance and a soft exit.
  * Centralising these keeps the screen feeling like one app instead of

@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="theme-color" content="#FFF8E7" />
-<title>ClockWise v4.2 — 弹性动画 + 反馈文案 Review</title>
+<title>ClockWise v4.2 — Spring animations + feedback copy review</title>
 <style>
   /* ---------- Bluey palette (mirrors BlueyPalette.kt) ---------- */
   :root {
@@ -197,33 +197,33 @@
 <body>
 
 <header class="hero">
-  <h1>🎮 ClockWise v4.2 — 弹性动画 + 反馈文案 Review</h1>
-  <p>今日已给所有 UI 件加上 spring 弹性出现/消失动画。请 Master 过目：反馈文案 4 套候选，以及本次动画变更。</p>
-  <p class="meta">prepared by Saber · 2026-06-28 · <span class="pill ok">v4.2.0 弹性动效 已上线</span>
-    <span class="pill">本页面仅供文案 review</span></p>
+  <h1>🎮 ClockWise v4.2 — Spring animations + feedback copy review</h1>
+  <p>Today's update gives every UI element a spring enter/exit animation. Master, please review: 4 feedback-copy candidates plus this round's animation changes.</p>
+  <p class="meta">prepared by Saber · 2026-06-28 · <span class="pill ok">v4.2.0 spring animations shipped</span>
+    <span class="pill">this page is copy review only</span></p>
 </header>
 
-<!-- ============================ 1. 改动概览 ============================ -->
-<h2>① 本次改动概览</h2>
+<!-- ============================ 1. Change overview ============================ -->
+<h2>① What changed this round</h2>
 
 <div class="card">
-  <p><strong>v4.2 变更点：</strong></p>
+  <p><strong>v4.2 highlights:</strong></p>
   <ol>
-    <li><strong>删除所有 「→」 箭头</strong> — 答错 FAB 的 ArrowForward 图标和文案里的 → 都干掉了，FAB 本身就是响应区。</li>
-    <li><strong>全屏弹性动画</strong> — Material 3 抠了个 Spring 调同子，顶部语言 / 时钟 / 问题 / 3 个选项 / 结果横幅 / 返回键，出现时都以 spring(DampingRatioMediumBouncy, StiffnessLow) “点 — 跳 — 那么一下”出来，消失时轻轻缩小深取。</li>
-    <li><strong>语言字符 中 / EN 在切换时会护身趋缩放动画。</strong></li>
-    <li><strong>题目切换时表盘也 spring出现</strong>，三个选项 stagger 70 ms 逐个跳出。</li>
+    <li><strong>All "→" arrows removed</strong> — the ArrowForward icon on the wrong-answer FAB and the → in the copy are both gone; the FAB itself is the hit area.</li>
+    <li><strong>Full-screen spring animations</strong> — pulled a Material 3 Spring tuning: the top language chip / clock / question / 3 answer options / result banner / back button all enter with <code>spring(DampingRatioMediumBouncy, StiffnessLow)</code> for a "tap — bounce — settle" feel, and exit with a gentle soft-shrink.</li>
+    <li><strong>The language glyph (中 / EN) scales smoothly on toggle.</strong></li>
+    <li><strong>On question change the dial also springs in</strong>, and the three options stagger by 70 ms each.</li>
   </ol>
-  <p class="muted">其他业务逻辑不变。详细的动画参数看 <code>QuizScreen.kt</code> 里的 <code>bounceEnter / softExit / springFloat</code> 三个顶级常量。</p>
+  <p class="muted">No business-logic changes. For exact animation params see the three top-level constants <code>bounceEnter / softExit / springFloat</code> in <code>QuizScreen.kt</code>.</p>
 </div>
 
-<h3>右上角控件最终布局（mock）</h3>
+<h3>Final top-right control layout (mock)</h3>
 <div class="mock" aria-label="quiz screen mock">
   <div class="topbar">
     <span></span>
     <div class="controls">
-      <button class="icon-btn" title="语言切换 — 现在显示「中」表示点一下切到中文">中</button>
-      <button class="icon-btn" title="进入时钟工坊">⏰</button>
+      <button class="icon-btn" title="Language toggle — '中' shown now means tap to switch to Chinese">中</button>
+      <button class="icon-btn" title="Open Clock Workshop">⏰</button>
     </div>
   </div>
   <div style="text-align:center; margin-bottom: 10px;">
@@ -240,70 +240,70 @@
     <div class="choice">4:00</div>
   </div>
 </div>
-<p class="muted" style="text-align:center;">两个圆形按钮间距 8dp，复用工坊返回键的 <code>BlueySoft / BlueyDeep</code> 配色 —— 三块控件视觉上同一族。</p>
+<p class="muted" style="text-align:center;">The two circular buttons sit 8dp apart and reuse the Clock Workshop back-button's <code>BlueySoft / BlueyDeep</code> palette — all three controls read as one family visually.</p>
 
-<!-- ============================ 2. 游戏逻辑 ============================ -->
-<h2>② 当前游戏逻辑（v4.0，本次不改）</h2>
+<!-- ============================ 2. Game logic ============================ -->
+<h2>② Current game logic (v4.0, unchanged this round)</h2>
 
 <div class="card">
-  <h3>题目生成</h3>
+  <h3>Question generation</h3>
   <ul>
-    <li>每题随机出一个时钟时间：<strong>小时 1–12</strong>，<strong>分钟从「允许集合」里随机抽一个</strong>。</li>
-    <li>表盘静态显示该时间，下面 3 个选项：1 正 + 2 错。</li>
-    <li>干扰项策略：
+    <li>Each question picks a random clock time: <strong>hour 1–12</strong>, <strong>minute drawn from the "allowed set"</strong>.</li>
+    <li>The dial shows that time statically; below it, 3 choices: 1 correct + 2 wrong.</li>
+    <li>Distractor strategy:
       <ul>
-        <li>① <strong>差一个小时</strong>（最常见的孩子错误，例如把 3:00 看成 2:00 或 4:00）。</li>
-        <li>② <strong>同小时、不同分钟</strong>（仅在难度允许多种分钟时启用）。</li>
+        <li>① <strong>Off by one hour</strong> (the most common kid mistake, e.g. reading 3:00 as 2:00 or 4:00).</li>
+        <li>② <strong>Same hour, different minute</strong> (only enabled once the difficulty allows multiple minute values).</li>
       </ul>
     </li>
   </ul>
 
-  <h3>难度阶梯（按 <em>连续答对</em> 自动升级）</h3>
+  <h3>Difficulty ladder (auto-promotes by <em>correct streak</em>)</h3>
   <div class="ladder">
     <div class="rung">
       <span class="badge">Lv 1</span>
-      <h4>整点</h4>
-      <p>连对 <strong>0–2</strong> 题</p>
+      <h4>On the hour</h4>
+      <p>Streak <strong>0–2</strong></p>
       <code>minute ∈ {00}</code>
-      <p class="muted">例：3:00 / 7:00</p>
+      <p class="muted">e.g. 3:00 / 7:00</p>
     </div>
     <div class="rung">
       <span class="badge">Lv 2</span>
-      <h4>整点 + 半点</h4>
-      <p>连对 <strong>3–5</strong> 题</p>
+      <h4>Hour + half-hour</h4>
+      <p>Streak <strong>3–5</strong></p>
       <code>minute ∈ {00, 30}</code>
-      <p class="muted">例：3:00 / 7:30</p>
+      <p class="muted">e.g. 3:00 / 7:30</p>
     </div>
     <div class="rung">
       <span class="badge">Lv 3</span>
-      <h4>整点 + 一刻</h4>
-      <p>连对 <strong>≥ 6</strong> 题</p>
+      <h4>Hour + quarters</h4>
+      <p>Streak <strong>≥ 6</strong></p>
       <code>minute ∈ {00, 15, 30, 45}</code>
-      <p class="muted">例：3:15 / 9:45</p>
+      <p class="muted">e.g. 3:15 / 9:45</p>
     </div>
   </div>
-  <p class="muted" style="margin-top: 14px;">⚠️ 答错时 streak 归零，自动退回到「整点」难度，保护信心。</p>
+  <p class="muted" style="margin-top: 14px;">⚠️ A wrong answer resets the streak to zero and drops back to "on the hour", protecting the child's confidence.</p>
 
-  <h3>答题流程</h3>
+  <h3>Answer flow</h3>
   <ol>
-    <li>题目出现，等待孩子点选项。</li>
-    <li>点选项后立即「揭晓」：选中按钮放大 1.05× 弹一下，正确变绿 / 错误变红。</li>
-    <li><strong>答对：</strong>显示绿色 ✓ banner，<strong>1.4 秒后自动出下一题</strong>。</li>
-    <li><strong>答错：</strong>显示蓝色「下一题」FAB，由孩子自己点一下才进下一题（给一秒钟冷静）。</li>
-    <li>顶部喇叭按钮随时可重听题目（用 v3.7 的童声音包，跟着语言/12-24h/音色走）。</li>
+    <li>Question appears; wait for the kid to tap a choice.</li>
+    <li>On tap, "reveal" immediately: the chosen button scales to 1.05× and bounces; correct turns green, wrong turns red.</li>
+    <li><strong>Correct:</strong> show the green ✓ banner, <strong>auto-advance to the next question after 1.4s</strong>.</li>
+    <li><strong>Wrong:</strong> show the blue "Next question" FAB and let the kid tap it themselves (giving them a beat to recover).</li>
+    <li>The top speaker button replays the question on demand (using the v3.7 child-voice pack, following the current language / 12-24h / voice settings).</li>
   </ol>
 </div>
 
-<!-- ============================ 3. 反馈文案候选 ============================ -->
-<h2>③ 答对 / 答错文案候选 — 请 Master 选一组</h2>
+<!-- ============================ 3. Feedback copy candidates ============================ -->
+<h2>③ Correct / wrong feedback copy candidates — please pick one, Master</h2>
 
-<p>目前 v4.0 用的是方案 A（最朴素）。下面 4 套都是 Material 3 风格 + Bluey 配色，行为不变，只换<strong>文字 + 微动效</strong>。中英都列。</p>
+<p>v4.0 currently uses Option A (the plainest). The 4 options below are all Material 3 + Bluey palette; behavior is unchanged, only the <strong>copy + micro-animation</strong> differs. Both Chinese and English are shown.</p>
 
 <div class="variants">
 
   <!-- Variant A -->
   <div class="variant" data-id="A">
-    <h4>方案 A · 朴素鼓励 <span class="pill tag tone">当前线上</span></h4>
+    <h4>Option A · Plain encouragement <span class="pill tag tone">currently live</span></h4>
     <div class="lang-row">
       <span class="lang">中</span>
       <div>
@@ -318,15 +318,15 @@
         <div class="wrong-banner" style="margin-top:6px;">Let's try again! <span class="icon arrow">·</span> Next question</div>
       </div>
     </div>
-    <p class="notes">📝 最稳，最「学校」。胜在不会出错，但缺乏惊喜感。</p>
+    <p class="notes">📝 Safest, most "schoolteacher". Won't offend, but lacks any spark.</p>
     <div class="vote">
-      <button data-vote="A">👍 我选这个</button>
+      <button data-vote="A">👍 I pick this one</button>
     </div>
   </div>
 
   <!-- Variant B -->
   <div class="variant" data-id="B">
-    <h4>方案 B · Bluey 风（亲切口语）<span class="pill tag tone">推荐</span></h4>
+    <h4>Option B · Bluey vibe (warm, conversational) <span class="pill tag tone">recommended</span></h4>
     <div class="lang-row">
       <span class="lang">中</span>
       <div>
@@ -341,15 +341,15 @@
         <div class="wrong-banner" style="margin-top:6px;">Sooo close! <span class="icon arrow">·</span> Try again</div>
       </div>
     </div>
-    <p class="notes">📝 借 Bluey 里 Bandit 爸爸的口头禅「Wackadoo」呼应主题；中文用「哇噢」更可爱。错答用「差一点点」不打击。</p>
+    <p class="notes">📝 Borrows Bandit's catchphrase "Wackadoo" from Bluey to reinforce the theme; the Chinese "哇噢" feels cuter. Wrong answers use "差一点点" so it doesn't sting.</p>
     <div class="vote">
-      <button data-vote="B">👍 我选这个</button>
+      <button data-vote="B">👍 I pick this one</button>
     </div>
   </div>
 
   <!-- Variant C -->
   <div class="variant" data-id="C">
-    <h4>方案 C · 连击 / 升级感 <span class="pill tag tone">游戏化</span></h4>
+    <h4>Option C · Combo / level-up feel <span class="pill tag tone">gamified</span></h4>
     <div class="lang-row">
       <span class="lang">中</span>
       <div>
@@ -364,15 +364,15 @@
         <div class="wrong-banner" style="margin-top:6px;">No worries! <span class="icon arrow">·</span> One more</div>
       </div>
     </div>
-    <p class="notes">📝 把后台已有的「连对，升难度」<strong>显式</strong>告诉孩子，第 3 / 6 题会有大彩蛋；其余答对只显示 ✓ 计数。<br>需要小开发：把 banner 文案与 streak 联动。</p>
+    <p class="notes">📝 <strong>Explicitly</strong> surfaces the already-existing "streak triggers harder questions" logic; questions 3 / 6 get a bigger celebration, the rest just show the ✓ count.<br>Needs a small change: tie the banner copy to the streak counter.</p>
     <div class="vote">
-      <button data-vote="C">👍 我选这个</button>
+      <button data-vote="C">👍 I pick this one</button>
     </div>
   </div>
 
   <!-- Variant D -->
   <div class="variant" data-id="D">
-    <h4>方案 D · 简短 emoji <span class="pill tag tone">最克制</span></h4>
+    <h4>Option D · Short + emoji <span class="pill tag tone">most restrained</span></h4>
     <div class="lang-row">
       <span class="lang">中</span>
       <div>
@@ -387,9 +387,9 @@
         <div class="wrong-banner" style="margin-top:6px;">Nope <span class="icon arrow">·</span> Next</div>
       </div>
     </div>
-    <p class="notes">📝 给「快节奏 / 已经熟练」的小朋友。文字越短动效越快，连续刷题最爽。</p>
+    <p class="notes">📝 For kids who are already fast and fluent. Shorter copy → snappier animation → maximum throughput.</p>
     <div class="vote">
-      <button data-vote="D">👍 我选这个</button>
+      <button data-vote="D">👍 I pick this one</button>
     </div>
   </div>
 
@@ -397,10 +397,10 @@
 
 <hr class="sep" />
 
-<h3>📋 文案对照表（方便一眼比较）</h3>
+<h3>📋 Copy comparison table (easier to scan)</h3>
 <table class="copy">
   <thead>
-    <tr><th>方案</th><th>中 · 答对</th><th>中 · 答错</th><th>EN · Right</th><th>EN · Wrong</th></tr>
+    <tr><th>Option</th><th>中 · correct</th><th>中 · wrong</th><th>EN · right</th><th>EN · wrong</th></tr>
   </thead>
   <tbody>
     <tr><th>A</th><td>太棒了！答对了！</td><td>再试一次吧！· 下一题</td><td>Great job! That's right!</td><td>Let's try again! · Next question</td></tr>
@@ -410,30 +410,30 @@
   </tbody>
 </table>
 
-<!-- ============================ 4. Saber 推荐 ============================ -->
-<h2>④ Saber 的建议</h2>
+<!-- ============================ 4. Saber's recommendation ============================ -->
+<h2>④ Saber's recommendation</h2>
 <div class="recommendation">
-  <h3>⭐ 建议：方案 B（基础）+ 方案 C 的「连对升级」彩蛋</h3>
+  <h3>⭐ Suggested: Option B (base) + Option C's "streak level-up" Easter egg</h3>
   <ul>
-    <li><strong>日常每题用 B：</strong>「哇噢，就是这个！」/「差一点点～」既有 Bluey 调性，又比 A 多一点性格。</li>
-    <li><strong>连对 3 / 6 题时叠加 C 的升级彩蛋：</strong>显式告诉孩子「升级啦」，让 v4.0 那个隐藏的难度阶梯被看见。这一改动需要给 ResultBanner 加一行：当 <code>streak == 3</code> 或 <code>streak == 6</code> 时切到「Leveling up」文案。</li>
-    <li><strong>D 留作未来 Settings 里的「快速模式」开关</strong>，给已经熟练的孩子。</li>
+    <li><strong>Daily questions use B:</strong> "Wackadoo! You got it!" / "Sooo close!" carries the Bluey tone with more personality than A.</li>
+    <li><strong>On streak 3 / 6 layer in Option C's level-up Easter egg:</strong> explicitly tell the kid "Leveling up", so the hidden difficulty ladder from v4.0 becomes visible. This needs one extra line in ResultBanner: when <code>streak == 3</code> or <code>streak == 6</code>, switch to the "Leveling up" copy.</li>
+    <li><strong>Keep D in reserve as a "fast mode" toggle in Settings</strong>, for kids who are already fluent.</li>
   </ul>
-  <p><strong>下一步：Master 在上面 4 个 👍 里点一下你最喜欢的，我直接落到 <code>QuizSpeech.kt</code> 并打 v4.1 包给你。</strong></p>
+  <p><strong>Next step: Master, tap whichever 👍 above you like best and I'll land it in <code>QuizSpeech.kt</code> and cut you a v4.1 build.</strong></p>
 </div>
 
 <p class="muted" style="margin-top: 32px; text-align:center;">
-  ⚔️ Saber · 复用 v3.7 童声音包 · Material 3 + Bluey palette · 本页静态托管于 GitHub Pages /docs。
+  ⚔️ Saber · reuses the v3.7 child-voice pack · Material 3 + Bluey palette · this page is statically hosted on GitHub Pages /docs.
 </p>
 
 <script>
-  // 投票按钮的小交互 —— 只是为了 Master 选完心里有数；
-  // 真正的「我选 X」请直接回我，我去落代码。
+  // Tiny interaction for the vote buttons — just so Master can see what's
+  // picked. To actually lock it in, reply to Saber and I'll land the code.
   document.querySelectorAll('.vote button').forEach((btn) => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.vote button').forEach(b => b.classList.remove('picked'));
       btn.classList.add('picked');
-      btn.textContent = '✓ 已选 · 请回复 Saber';
+      btn.textContent = '✓ Picked · please reply to Saber';
     });
   });
 </script>

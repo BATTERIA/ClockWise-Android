@@ -11,8 +11,9 @@ import com.batteria.clockwise.presentation.settings.SettingsScreen
 /**
  * v4.0 — App navigation.
  *
- * Start destination is the quiz/game screen ("看图说时间") so kids land
- * straight into an interactive question. From there a top-end clock-icon
+ * Start destination is the quiz/game screen ("看图说时间" — read-the-
+ * clock-face questions) so kids land straight into an interactive
+ * question. From there a top-end clock-icon
  * button navigates to the full clock workshop; the workshop's top-start
  * back button + the system back gesture both pop back to the quiz.
  *

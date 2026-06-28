@@ -17,11 +17,12 @@ import kotlinx.coroutines.launch
  *
  * Owns the random-question generator. Reads the persisted clock prefs once
  * so the quiz inherits the user's language/format/voice; we don't want the
- * kid to learn "三点" and then have the next question shout "3:00".
+ * kid to learn "三点" (Chinese for "three o'clock") and then have the next
+ * question shout "3:00".
  *
- * The first quiz format is intentionally simple — "看图说时间" on quarter
- * hours — to match L1 of the published curriculum. Difficulty scales by
- * widening the minute set after a small correct streak.
+ * The first quiz format is intentionally simple — "看图说时间" (read the
+ * clock face) on quarter hours — to match L1 of the published curriculum.
+ * Difficulty scales by widening the minute set after a small correct streak.
  *
  * v4.1 — added [setLanguage] so the quiz screen's own top-end language
  * toggle can persist a flip. The flow collector above propagates the
@@ -54,7 +55,7 @@ class QuizViewModel @Inject constructor(
     }
 
     /**
-     * Flip the displayed language (中 / EN). Persisted via the shared
+     * Flip the displayed language (Chinese 中 / EN). Persisted via the shared
      * [ClockPreferencesRepository] so the workshop screen picks up the
      * change too (and survives process death).
      */
@@ -67,8 +68,8 @@ class QuizViewModel @Inject constructor(
 
     /**
      * Generate a fresh question. Difficulty schedule:
-     *   streak 0-2  → minute ∈ {0}           (整点 only, L1)
-     *   streak 3-5  → minute ∈ {0, 30}       (整点 + 半点)
+     *   streak 0-2  → minute ∈ {0}           (on the hour only, L1)
+     *   streak 3-5  → minute ∈ {0, 30}       (on the hour + half-hour)
      *   streak 6+   → minute ∈ {0, 15, 30, 45} (quarters)
      */
     fun nextQuestion() {

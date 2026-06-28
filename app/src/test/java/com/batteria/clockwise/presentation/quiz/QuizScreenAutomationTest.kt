@@ -182,9 +182,10 @@ class QuizScreenAutomationTest {
 
     /**
      * v4.3 — milestone banner appears every Nth correct streak.
-     * At streak == 3 the "连对 3 次！要升级啦" sun-yellow card replaces the
-     * normal mint "哇噢，就是这个！" card, with a dedicated test tag so
-     * we can lock the swap in.
+     * At streak == 3 the sun-yellow "连对 3 次！要升级啦" card
+     * ("3 in a row! Leveling up") replaces the normal mint
+     * "哇噢，就是这个！" ("Wackadoo! You got it!") card, with a
+     * dedicated test tag so we can lock the swap in.
      */
     @Test
     fun milestoneBanner_appears_atStreakThree_andSuppressesPlainCorrect() {

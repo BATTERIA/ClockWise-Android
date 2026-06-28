@@ -1,6 +1,6 @@
 # 🕐 ClockWise Android
 
-**教小朋友认识时钟 | Learn to read clocks**
+**Learn to read clocks — a fun app for kids**
 
 A bilingual (Chinese + English) clock-learning app for children ages 4-10, built with modern Android technologies.
 
@@ -41,5 +41,3 @@ app/src/main/java/com/batteria/clockwise/
 ## License
 
 MIT — free and open source for everyone ❤️
-
-If you like this project, consider [buying me a coffee ☕](https://github.com/BATTERIA) (coming soon).

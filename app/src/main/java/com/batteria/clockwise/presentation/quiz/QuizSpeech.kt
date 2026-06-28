@@ -20,7 +20,7 @@ object QuizSpeech {
     /**
      * Default correct-answer copy — "Bluey-style" wording per Master's
      * v4.3 pick (option B in the review page). Warmer than the v4.0/4.2
-     * "太棒了！答对了！" / "Great job!" line.
+     * "太棒了！答对了！" ("Great job! That's right!") line.
      */
     fun correct(language: Language): String = when (language) {
         Language.ZH -> "哇噢，就是这个！"

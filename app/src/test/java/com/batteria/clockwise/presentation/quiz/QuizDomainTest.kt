@@ -64,4 +64,43 @@ class QuizDomainTest {
             QuizSpeech.question(com.batteria.clockwise.presentation.clock.Language.EN),
         )
     }
+
+    @Test
+    fun correctMilestone_isNull_belowFirstThreshold() {
+        val zh = com.batteria.clockwise.presentation.clock.Language.ZH
+        // streak 0, 1, 2 → no milestone, fall back to normal Bluey copy
+        assertEquals(null, QuizSpeech.correctMilestone(0, zh))
+        assertEquals(null, QuizSpeech.correctMilestone(1, zh))
+        assertEquals(null, QuizSpeech.correctMilestone(2, zh))
+    }
+
+    @Test
+    fun correctMilestone_firesEveryThirdCorrect() {
+        val zh = com.batteria.clockwise.presentation.clock.Language.ZH
+        val en = com.batteria.clockwise.presentation.clock.Language.EN
+
+        val zh3 = QuizSpeech.correctMilestone(3, zh)
+        val en3 = QuizSpeech.correctMilestone(3, en)
+        val zh6 = QuizSpeech.correctMilestone(6, zh)
+        val en9 = QuizSpeech.correctMilestone(9, en)
+
+        // Each milestone string should embed the current streak count so
+        // the kid sees "3 in a row", "6 in a row", etc.
+        assertTrue("ZH @3 should contain '3'", zh3?.contains("3") == true)
+        assertTrue("EN @3 should contain '3'", en3?.contains("3") == true)
+        assertTrue("ZH @6 should contain '6'", zh6?.contains("6") == true)
+        assertTrue("EN @9 should contain '9'", en9?.contains("9") == true)
+        // ZH and EN must differ for the same streak — we're not double-
+        // localising the same string.
+        assertNotEquals(zh3, en3)
+    }
+
+    @Test
+    fun correctMilestone_skips_nonMultiples() {
+        val zh = com.batteria.clockwise.presentation.clock.Language.ZH
+        assertEquals(null, QuizSpeech.correctMilestone(4, zh))
+        assertEquals(null, QuizSpeech.correctMilestone(5, zh))
+        assertEquals(null, QuizSpeech.correctMilestone(7, zh))
+        assertEquals(null, QuizSpeech.correctMilestone(8, zh))
+    }
 }

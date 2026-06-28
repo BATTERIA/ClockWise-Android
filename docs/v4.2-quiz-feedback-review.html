@@ -199,8 +199,8 @@
 <header class="hero">
   <h1>🎮 ClockWise v4.2 — 弹性动画 + 反馈文案 Review</h1>
   <p>今日已给所有 UI 件加上 spring 弹性出现/消失动画。请 Master 过目：反馈文案 4 套候选，以及本次动画变更。</p>
-  <p class="meta">prepared by Saber · 2026-06-28 · <span class="pill ok">v4.2.0 弹性动效 已上线</span>
-    <span class="pill">本页面仅供文案 review</span></p>
+  <p class="meta">prepared by Saber · 2026-06-28 · <span class="pill ok">v4.3.0 B+C 已上线</span>
+    <span class="pill">连对 3 / 6 / 9... 题触发升级彩蛋</span></p>
 </header>
 
 <!-- ============================ 1. 改动概览 ============================ -->
@@ -413,13 +413,14 @@
 <!-- ============================ 4. Saber 推荐 ============================ -->
 <h2>④ Saber 的建议</h2>
 <div class="recommendation">
-  <h3>⭐ 建议：方案 B（基础）+ 方案 C 的「连对升级」彩蛋</h3>
+  <h3>✅ v4.3 实现：B + C 已落代码</h3>
   <ul>
-    <li><strong>日常每题用 B：</strong>「哇噢，就是这个！」/「差一点点～」既有 Bluey 调性，又比 A 多一点性格。</li>
-    <li><strong>连对 3 / 6 题时叠加 C 的升级彩蛋：</strong>显式告诉孩子「升级啦」，让 v4.0 那个隐藏的难度阶梯被看见。这一改动需要给 ResultBanner 加一行：当 <code>streak == 3</code> 或 <code>streak == 6</code> 时切到「Leveling up」文案。</li>
-    <li><strong>D 留作未来 Settings 里的「快速模式」开关</strong>，给已经熟练的孩子。</li>
+    <li><strong>日常题用 B：</strong>「哇噢，就是这个！」/「差一点点～」 <code>QuizSpeech.correct / wrong</code></li>
+    <li><strong>连对 3 题、连对 6 题、9 题... 手拽金黄色升级横幅：</strong>「连对 N 次！要升级啦 ✨」 / 「N in a row! Leveling up ✨」 <code>QuizSpeech.correctMilestone(...)</code></li>
+    <li>结果横幅动画会在「普通绿色卡」与「金黄彩蛋卡」之间 spring scale 跳换。</li>
+    <li>D 差预留到未来 Settings 里的「快速模式」开关。</li>
   </ul>
-  <p><strong>下一步：Master 在上面 4 个 👍 里点一下你最喜欢的，我直接落到 <code>QuizSpeech.kt</code> 并打 v4.1 包给你。</strong></p>
+  <p><strong>需调整频率？</strong>改 <code>QuizSpeech.MILESTONE_EVERY</code>（默认 3）。设为 5 就变成连对 5 / 10 / 15... 才触发。</p>
 </div>
 
 <p class="muted" style="margin-top: 32px; text-align:center;">

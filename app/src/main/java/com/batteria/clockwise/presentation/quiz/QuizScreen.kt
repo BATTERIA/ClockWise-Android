@@ -524,12 +524,29 @@ private fun ChoicesGrid(
 
 /* -------------------- result + "next" CTA -------------------- */
 
+private enum class ResultVariant { Idle, Correct, Milestone, Wrong }
+
 @Composable
 private fun ResultBanner(state: QuizUiState, onNext: () -> Unit, big: Boolean) {
+    // v4.3 — three distinct revealed variants:
+    //  · Correct       → Bluey-style "Wackadoo!" banner (mint card)
+    //  · Milestone     → every Nth correct streak "连对 N 次！要升级啦 ✨"
+    //                    banner painted in sun/yellow so it pops
+    //  · Wrong         → Bluey "差一点点～" / "Sooo close!" FAB
+    // AnimatedContent’s targetState now carries the chosen variant so the
+    // spring-scale transition fires when we hop between them too.
+    val milestone = QuizSpeech.correctMilestone(state.correctStreak, state.language)
+    val variant: ResultVariant = when {
+        state.phase != QuizPhase.Revealed -> ResultVariant.Idle
+        state.pickedIndex != state.correctIndex -> ResultVariant.Wrong
+        milestone != null -> ResultVariant.Milestone
+        else -> ResultVariant.Correct
+    }
+
     // v4.2 — swap with a springy scale-in instead of a flat fade so the
     // banner / FAB *pops* the moment the kid commits. Exit shrinks softly.
     AnimatedContent(
-        targetState = state.phase to (state.pickedIndex == state.correctIndex),
+        targetState = variant,
         transitionSpec = {
             (scaleIn(springFloat, initialScale = 0.6f) + fadeIn(tween(220)))
                 .togetherWith(
@@ -537,9 +554,9 @@ private fun ResultBanner(state: QuizUiState, onNext: () -> Unit, big: Boolean) {
                 )
         },
         label = "result_banner",
-    ) { (phase, isCorrect) ->
-        when {
-            phase == QuizPhase.Revealed && isCorrect -> {
+    ) { v ->
+        when (v) {
+            ResultVariant.Correct -> {
                 ElevatedCard(
                     colors = CardDefaults.elevatedCardColors(
                         containerColor = BlueyPalette.Mint.copy(alpha = 0.18f),
@@ -548,7 +565,10 @@ private fun ResultBanner(state: QuizUiState, onNext: () -> Unit, big: Boolean) {
                 ) {
                     Row(
                         modifier = Modifier
-                            .padding(horizontal = if (big) 24.dp else 18.dp, vertical = if (big) 16.dp else 12.dp)
+                            .padding(
+                                horizontal = if (big) 24.dp else 18.dp,
+                                vertical = if (big) 16.dp else 12.dp,
+                            )
                             .testTag("quiz_result_correct"),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(if (big) 12.dp else 8.dp),
@@ -567,10 +587,45 @@ private fun ResultBanner(state: QuizUiState, onNext: () -> Unit, big: Boolean) {
                     }
                 }
             }
-            phase == QuizPhase.Revealed && !isCorrect -> {
+            ResultVariant.Milestone -> {
+                // “连对 N 次！要升级啦” — sun-yellow card to set it apart from the
+                // mint everyday card. We re-use QuizSpeech.correctMilestone
+                // so the streak number is part of the visible string.
+                ElevatedCard(
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = BlueyPalette.Sun.copy(alpha = 0.28f),
+                        contentColor = BlueyPalette.Ink,
+                    ),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(
+                                horizontal = if (big) 28.dp else 22.dp,
+                                vertical = if (big) 18.dp else 14.dp,
+                            )
+                            .testTag("quiz_result_milestone"),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(if (big) 12.dp else 10.dp),
+                    ) {
+                        Text(
+                            text = "🄯",
+                            fontSize = if (big) 32.sp else 26.sp,
+                        )
+                        // milestone is non-null in this branch by construction.
+                        Text(
+                            text = milestone
+                                ?: QuizSpeech.correct(state.language),
+                            fontSize = if (big) 22.sp else 18.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                        )
+                    }
+                }
+            }
+            ResultVariant.Wrong -> {
                 // v4.2 — dropped the leading "→" arrow icon + arrow glyph per
                 // Master's request. The FAB itself is the affordance; the
-                // wording "再试一次 · 下一题" / "Try again · Next" reads cleaner.
+                // wording "差一点点～ · 下一题" / "Sooo close! · Next question"
+                // reads cleaner.
                 ExtendedFloatingActionButton(
                     onClick = onNext,
                     containerColor = BlueyPalette.Bluey,
@@ -583,7 +638,7 @@ private fun ResultBanner(state: QuizUiState, onNext: () -> Unit, big: Boolean) {
                     )
                 }
             }
-            else -> {
+            ResultVariant.Idle -> {
                 Spacer(modifier = Modifier.height(if (big) 56.dp else 44.dp))
             }
         }

@@ -158,8 +158,7 @@ class QuizScreenAutomationTest {
      * (Hilt-free) so this test doesn't need DataStore.
      */
     @Test
-    fun nextQuestion_invariants_holdOverManyRegenerations() {
-        // Mimic the public shape produced by QuizViewModel.nextQuestion()
+    fun nextQuestion_invariants_holdOverManyRegenerations() {        // Mimic the public shape produced by QuizViewModel.nextQuestion()
         // without actually instantiating the Hilt-backed VM. The point is
         // to lock the *contract* the screen depends on, not the VM internals.
         repeat(200) {
@@ -179,6 +178,57 @@ class QuizScreenAutomationTest {
                 )
             }
         }
+    }
+
+    /**
+     * v4.3 — milestone banner appears every Nth correct streak.
+     * At streak == 3 the "连对 3 次！要升级啦" sun-yellow card replaces the
+     * normal mint "哇噢，就是这个！" card, with a dedicated test tag so
+     * we can lock the swap in.
+     */
+    @Test
+    fun milestoneBanner_appears_atStreakThree_andSuppressesPlainCorrect() {
+        val state = sampleState(
+            picked = 0,
+            phase = QuizPhase.Revealed,
+            correctIndex = 0,
+        ).copy(correctStreak = 3)
+        composeRule.setContent {
+            ClockWiseTheme {
+                QuizScreenContent(
+                    state = state,
+                    onPick = {},
+                    onNext = {},
+                    onOpenClock = {},
+                )
+            }
+        }
+        composeRule.onNodeWithTag("quiz_result_milestone").assertIsDisplayed()
+        // Plain mint correct banner must NOT show — the milestone replaces it.
+        composeRule.onNodeWithTag("quiz_result_correct").assertDoesNotExistRobust()
+        composeRule.onNodeWithTag("quiz_next_button").assertDoesNotExistRobust()
+    }
+
+    /** Non-milestone correct (streak == 1) shows the plain banner, not milestone. */
+    @Test
+    fun plainCorrectBanner_shows_whenStreakIsNotAMilestone() {
+        val state = sampleState(
+            picked = 0,
+            phase = QuizPhase.Revealed,
+            correctIndex = 0,
+        ).copy(correctStreak = 1)
+        composeRule.setContent {
+            ClockWiseTheme {
+                QuizScreenContent(
+                    state = state,
+                    onPick = {},
+                    onNext = {},
+                    onOpenClock = {},
+                )
+            }
+        }
+        composeRule.onNodeWithTag("quiz_result_correct").assertIsDisplayed()
+        composeRule.onNodeWithTag("quiz_result_milestone").assertDoesNotExistRobust()
     }
 
     /* -------------------- helpers -------------------- */

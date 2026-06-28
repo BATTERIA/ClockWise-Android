@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#FFF8E7" />
+<title>ClockWise v4.1 — 游戏逻辑 & 答题反馈文案 Review</title>
+<style>
+  /* ---------- Bluey palette (mirrors BlueyPalette.kt) ---------- */
+  :root {
+    --bg:         #FFF8E7;
+    --bg-elev:    #FFFDF5;
+    --bg-deep:    #F5E8C8;
+    --bluey:      #4FB3FF;
+    --bluey-deep: #1E78D9;
+    --bluey-soft: #B3E0FF;
+    --bingo:      #FF9542;
+    --bingo-soft: #FFD4A8;
+    --bandit:     #2563EB;
+    --chilli:     #E74C3C;
+    --mint:       #4ED8A0;
+    --mint-soft:  #BCEBD6;
+    --sun:        #FFDA6E;
+    --rose:       #FF8FBE;
+    --ink:        #1E3A52;
+    --ink-soft:   #4A6B8A;
+    --outline:    #C8B89A;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+                 "Microsoft YaHei", Roboto, system-ui, sans-serif;
+    line-height: 1.55;
+    padding: 24px 18px 80px;
+    max-width: 980px;
+    margin: 0 auto;
+  }
+  h1, h2, h3, h4 { color: var(--ink); margin: 0 0 10px; line-height: 1.25; }
+  h1 { font-size: 26px; letter-spacing: -0.02em; }
+  h2 { font-size: 20px; margin-top: 32px; padding-bottom: 6px; border-bottom: 2px solid var(--bluey-soft); }
+  h3 { font-size: 16px; margin-top: 24px; color: var(--bluey-deep); }
+  p, li { font-size: 15px; }
+  code { background: var(--bg-deep); color: var(--ink); padding: 1px 6px; border-radius: 6px; font-size: 13px; }
+  .muted { color: var(--ink-soft); font-size: 13px; }
+  .card {
+    background: var(--bg-elev);
+    border: 1px solid var(--outline);
+    border-radius: 18px;
+    padding: 16px 18px;
+    margin: 14px 0;
+    box-shadow: 0 4px 14px rgba(30, 58, 82, 0.05);
+  }
+  .pill {
+    display: inline-block; padding: 3px 10px; border-radius: 999px;
+    background: var(--bluey-soft); color: var(--bluey-deep); font-size: 12px; font-weight: 700;
+  }
+  .pill.warn { background: #FFE4D6; color: #B5500F; }
+  .pill.ok   { background: var(--mint-soft); color: #166848; }
+
+  /* ---------- header banner ---------- */
+  .hero {
+    background: linear-gradient(135deg, var(--bluey) 0%, var(--bluey-deep) 100%);
+    color: white;
+    padding: 22px 22px;
+    border-radius: 22px;
+    margin-bottom: 18px;
+    box-shadow: 0 6px 22px rgba(30, 120, 217, 0.30);
+  }
+  .hero h1 { color: white; margin-bottom: 4px; }
+  .hero p  { color: rgba(255,255,255,0.92); margin: 0; }
+  .hero .meta { margin-top: 8px; font-size: 12px; color: rgba(255,255,255,0.78); }
+
+  /* ---------- difficulty ladder ---------- */
+  .ladder { display: grid; gap: 10px; grid-template-columns: 1fr 1fr 1fr; margin-top: 14px; }
+  @media (max-width: 640px) { .ladder { grid-template-columns: 1fr; } }
+  .ladder .rung {
+    background: var(--bg-elev); border: 1px solid var(--outline);
+    border-radius: 16px; padding: 14px; position: relative;
+  }
+  .ladder .rung h4 { color: var(--bluey-deep); margin-bottom: 4px; font-size: 15px; }
+  .ladder .badge {
+    position: absolute; top: -10px; right: 12px;
+    background: var(--sun); color: var(--ink); font-weight: 800; font-size: 12px;
+    padding: 3px 9px; border-radius: 999px; border: 2px solid var(--bg-elev);
+  }
+  .ladder code { display: inline-block; margin-top: 6px; }
+
+  /* ---------- mock phone preview ---------- */
+  .mock {
+    background: var(--bg); border: 1px solid var(--outline); border-radius: 28px;
+    padding: 18px 16px; max-width: 320px; margin: 12px auto;
+    box-shadow: 0 8px 22px rgba(30, 58, 82, 0.12);
+  }
+  .mock .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .mock .topbar .controls { display: flex; gap: 8px; }
+  .mock .icon-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--bluey-soft); color: var(--bluey-deep);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 14px; border: none;
+  }
+  .mock .question-card {
+    background: var(--bg-elev); border-radius: 999px; padding: 8px 14px;
+    display: inline-flex; align-items: center; gap: 10px;
+    box-shadow: 0 2px 6px rgba(30, 58, 82, 0.08);
+    font-weight: 700; font-size: 13px;
+  }
+  .mock .speaker { background: rgba(79, 179, 255, 0.18); color: var(--bluey);
+                   width: 24px; height: 24px; border-radius: 50%;
+                   display: inline-flex; align-items: center; justify-content: center; font-size: 12px; }
+  .mock .clock-face {
+    background: var(--bg-elev); width: 180px; height: 180px; border-radius: 50%;
+    margin: 14px auto; position: relative; border: 4px solid var(--outline);
+    box-shadow: inset 0 0 12px rgba(0,0,0,0.04);
+  }
+  .mock .clock-face::before, .mock .clock-face::after {
+    content: ''; position: absolute; left: 50%; top: 50%;
+    background: var(--bandit); border-radius: 4px; transform-origin: center bottom;
+  }
+  .mock .clock-face::before { width: 6px; height: 48px; transform: translate(-50%, -100%) rotate(90deg); background: var(--bandit); }
+  .mock .clock-face::after  { width: 4px; height: 64px; transform: translate(-50%, -100%) rotate(0deg);  background: var(--bluey); }
+  .mock .pin { width: 12px; height: 12px; background: var(--chilli); border-radius: 50%;
+               position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+  .mock .num { position: absolute; font-weight: 800; color: var(--ink); font-size: 13px; }
+  .mock .choices { display: flex; justify-content: space-between; gap: 8px; margin: 6px 4px 14px; }
+  .mock .choice {
+    flex: 1; background: var(--bg-elev); border: 1px solid var(--outline);
+    border-radius: 18px; padding: 10px 0; text-align: center; font-weight: 800; font-size: 16px;
+    color: var(--bluey-deep); box-shadow: 0 2px 6px rgba(30,58,82,0.06);
+  }
+  .mock .choice.correct { background: var(--mint-soft); color: #166848; }
+  .mock .choice.wrong   { background: #FBD0CB; color: var(--chilli); }
+
+  /* ---------- feedback variants ---------- */
+  .variants {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 14px;
+  }
+  @media (max-width: 720px) { .variants { grid-template-columns: 1fr; } }
+  .variant {
+    background: var(--bg-elev); border: 1px solid var(--outline); border-radius: 18px;
+    padding: 14px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .variant h4 { color: var(--bluey-deep); margin-bottom: 0; display: flex; align-items: center; gap: 6px; }
+  .variant .tag { font-size: 11px; padding: 1px 7px; border-radius: 999px; }
+  .variant .tag.tone { background: var(--bingo-soft); color: #B5500F; }
+  .variant .lang-row { display: grid; grid-template-columns: 36px 1fr; gap: 8px; align-items: center; }
+  .variant .lang-row .lang { background: var(--bluey-soft); color: var(--bluey-deep);
+                              font-weight: 800; text-align: center; border-radius: 8px;
+                              padding: 4px 0; font-size: 11px; }
+  .variant .correct-banner {
+    background: rgba(78, 216, 160, 0.18); border-radius: 14px; padding: 8px 12px;
+    display: flex; align-items: center; gap: 8px; font-weight: 800; color: #166848; font-size: 14px;
+  }
+  .variant .wrong-banner {
+    background: var(--bluey); color: white; border-radius: 999px; padding: 8px 14px;
+    display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 13px;
+    align-self: flex-start;
+  }
+  .variant .icon { display: inline-flex; align-items: center; justify-content: center;
+                   width: 22px; height: 22px; border-radius: 50%; font-size: 14px; }
+  .variant .icon.ok   { background: var(--mint); color: white; }
+  .variant .icon.arrow{ background: rgba(255,255,255,0.25); color: white; }
+  .variant .notes { color: var(--ink-soft); font-size: 12.5px; }
+
+  .vote {
+    display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;
+  }
+  .vote button {
+    background: var(--bg); border: 1px solid var(--outline); color: var(--ink-soft);
+    border-radius: 999px; padding: 5px 12px; font-size: 12px; cursor: pointer; font-weight: 700;
+  }
+  .vote button:hover { background: var(--bluey-soft); color: var(--bluey-deep); }
+  .vote button.picked { background: var(--mint); color: white; border-color: var(--mint); }
+
+  /* ---------- decision summary ---------- */
+  .recommendation {
+    background: linear-gradient(135deg, var(--sun) 0%, #FFE9A8 100%);
+    border-radius: 18px; padding: 16px 18px; margin-top: 16px;
+    border: 2px solid var(--outline);
+  }
+  .recommendation h3 { color: var(--ink); margin-top: 0; }
+
+  /* ---------- tiny analog mock numbers ---------- */
+  .num.n12 { top: 6px;  left: 50%; transform: translateX(-50%); }
+  .num.n3  { right: 8px; top: 50%;  transform: translateY(-50%); }
+  .num.n6  { bottom: 6px; left: 50%; transform: translateX(-50%); }
+  .num.n9  { left: 8px;  top: 50%;  transform: translateY(-50%); }
+
+  hr.sep { border: none; border-top: 1px dashed var(--outline); margin: 18px 0; }
+  table.copy { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+  table.copy th, table.copy td { padding: 8px 10px; text-align: left; vertical-align: top;
+                                  border-bottom: 1px solid var(--bg-deep); }
+  table.copy th { color: var(--bluey-deep); width: 70px; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <h1>🎮 ClockWise v4.1 — 游戏逻辑 &amp; 反馈文案 Review</h1>
+  <p>请 Master 过目：右上角语言切换的最终位置，以及答对 / 答错的文案候选。</p>
+  <p class="meta">prepared by Saber · 2026-06-28 · <span class="pill ok">v4.0.0 已发布</span>
+    <span class="pill">本次仅做 UI + 文案变更</span></p>
+</header>
+
+<!-- ============================ 1. 改动概览 ============================ -->
+<h2>① 本次改动概览</h2>
+
+<div class="card">
+  <p><strong>变更点：</strong></p>
+  <ol>
+    <li><strong>游戏页右上角加中英切换按钮</strong> — Material 3 <code>FilledTonalIconButton</code>，圆形 48dp，紧贴在「时钟工坊」按钮左侧。</li>
+    <li><strong>语言状态持久化</strong> — 复用现有的 <code>ClockPreferencesRepository</code>，所以工坊页 / 重启 App 都跟着同步。</li>
+    <li><strong>按钮上的字本身就是「点击后切到的语言」</strong> — 当前 EN 时显示「中」，当前中文时显示「EN」。一眼即懂，符合微信 / iOS 等设置项约定。</li>
+    <li><strong>本次不动答题逻辑</strong> — 题目生成、3 选项、播报、自动进入下一题，全部沿用 v4.0。</li>
+  </ol>
+</div>
+
+<h3>右上角控件最终布局（mock）</h3>
+<div class="mock" aria-label="quiz screen mock">
+  <div class="topbar">
+    <span></span>
+    <div class="controls">
+      <button class="icon-btn" title="语言切换 — 现在显示「中」表示点一下切到中文">中</button>
+      <button class="icon-btn" title="进入时钟工坊">⏰</button>
+    </div>
+  </div>
+  <div style="text-align:center; margin-bottom: 10px;">
+    <span class="question-card"><span class="speaker">🔊</span> What time does this clock show?</span>
+  </div>
+  <div class="clock-face">
+    <span class="num n12">12</span><span class="num n3">3</span>
+    <span class="num n6">6</span><span class="num n9">9</span>
+    <span class="pin"></span>
+  </div>
+  <div class="choices">
+    <div class="choice">2:00</div>
+    <div class="choice">3:00</div>
+    <div class="choice">4:00</div>
+  </div>
+</div>
+<p class="muted" style="text-align:center;">两个圆形按钮间距 8dp，复用工坊返回键的 <code>BlueySoft / BlueyDeep</code> 配色 —— 三块控件视觉上同一族。</p>
+
+<!-- ============================ 2. 游戏逻辑 ============================ -->
+<h2>② 当前游戏逻辑（v4.0，本次不改）</h2>
+
+<div class="card">
+  <h3>题目生成</h3>
+  <ul>
+    <li>每题随机出一个时钟时间：<strong>小时 1–12</strong>，<strong>分钟从「允许集合」里随机抽一个</strong>。</li>
+    <li>表盘静态显示该时间，下面 3 个选项：1 正 + 2 错。</li>
+    <li>干扰项策略：
+      <ul>
+        <li>① <strong>差一个小时</strong>（最常见的孩子错误，例如把 3:00 看成 2:00 或 4:00）。</li>
+        <li>② <strong>同小时、不同分钟</strong>（仅在难度允许多种分钟时启用）。</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>难度阶梯（按 <em>连续答对</em> 自动升级）</h3>
+  <div class="ladder">
+    <div class="rung">
+      <span class="badge">Lv 1</span>
+      <h4>整点</h4>
+      <p>连对 <strong>0–2</strong> 题</p>
+      <code>minute ∈ {00}</code>
+      <p class="muted">例：3:00 / 7:00</p>
+    </div>
+    <div class="rung">
+      <span class="badge">Lv 2</span>
+      <h4>整点 + 半点</h4>
+      <p>连对 <strong>3–5</strong> 题</p>
+      <code>minute ∈ {00, 30}</code>
+      <p class="muted">例：3:00 / 7:30</p>
+    </div>
+    <div class="rung">
+      <span class="badge">Lv 3</span>
+      <h4>整点 + 一刻</h4>
+      <p>连对 <strong>≥ 6</strong> 题</p>
+      <code>minute ∈ {00, 15, 30, 45}</code>
+      <p class="muted">例：3:15 / 9:45</p>
+    </div>
+  </div>
+  <p class="muted" style="margin-top: 14px;">⚠️ 答错时 streak 归零 → 自动退回到「整点」难度，保护信心。</p>
+
+  <h3>答题流程</h3>
+  <ol>
+    <li>题目出现 → 等待孩子点选项。</li>
+    <li>点选项后立即「揭晓」：选中按钮放大 1.05× 弹一下，正确变绿 / 错误变红。</li>
+    <li><strong>答对：</strong>显示绿色 ✓ banner，<strong>1.4 秒后自动出下一题</strong>。</li>
+    <li><strong>答错：</strong>显示蓝色「→ 下一题」FAB，由孩子自己点一下才进下一题（给一秒钟冷静）。</li>
+    <li>顶部喇叭按钮随时可重听题目（用 v3.7 的童声音包，跟着语言/12-24h/音色走）。</li>
+  </ol>
+</div>
+
+<!-- ============================ 3. 反馈文案候选 ============================ -->
+<h2>③ 答对 / 答错文案候选 — 请 Master 选一组</h2>
+
+<p>目前 v4.0 用的是方案 A（最朴素）。下面 4 套都是 Material 3 风格 + Bluey 配色，行为不变，只换<strong>文字 + 微动效</strong>。中英都列。</p>
+
+<div class="variants">
+
+  <!-- Variant A -->
+  <div class="variant" data-id="A">
+    <h4>方案 A · 朴素鼓励 <span class="pill tag tone">当前线上</span></h4>
+    <div class="lang-row">
+      <span class="lang">中</span>
+      <div>
+        <div class="correct-banner"><span class="icon ok">✓</span>太棒了！答对了！</div>
+        <div class="wrong-banner" style="margin-top:6px;">再试一次吧！ <span class="icon arrow">→</span> 下一题</div>
+      </div>
+    </div>
+    <div class="lang-row">
+      <span class="lang">EN</span>
+      <div>
+        <div class="correct-banner"><span class="icon ok">✓</span>Great job! That's right!</div>
+        <div class="wrong-banner" style="margin-top:6px;">Let's try again! <span class="icon arrow">→</span> Next question</div>
+      </div>
+    </div>
+    <p class="notes">📝 最稳，最「学校」。胜在不会出错，但缺乏惊喜感。</p>
+    <div class="vote">
+      <button data-vote="A">👍 我选这个</button>
+    </div>
+  </div>
+
+  <!-- Variant B -->
+  <div class="variant" data-id="B">
+    <h4>方案 B · Bluey 风（亲切口语）<span class="pill tag tone">推荐</span></h4>
+    <div class="lang-row">
+      <span class="lang">中</span>
+      <div>
+        <div class="correct-banner"><span class="icon ok">⭐</span>哇噢，就是这个！</div>
+        <div class="wrong-banner" style="margin-top:6px;">差一点点～ <span class="icon arrow">→</span> 再来一次</div>
+      </div>
+    </div>
+    <div class="lang-row">
+      <span class="lang">EN</span>
+      <div>
+        <div class="correct-banner"><span class="icon ok">⭐</span>Wackadoo! You got it!</div>
+        <div class="wrong-banner" style="margin-top:6px;">Sooo close! <span class="icon arrow">→</span> Try again</div>
+      </div>
+    </div>
+    <p class="notes">📝 借 Bluey 里 Bandit 爸爸的口头禅「Wackadoo」呼应主题；中文用「哇噢」更可爱。错答用「差一点点」不打击。</p>
+    <div class="vote">
+      <button data-vote="B">👍 我选这个</button>
+    </div>
+  </div>
+
+  <!-- Variant C -->
+  <div class="variant" data-id="C">
+    <h4>方案 C · 连击 / 升级感 <span class="pill tag tone">游戏化</span></h4>
+    <div class="lang-row">
+      <span class="lang">中</span>
+      <div>
+        <div class="correct-banner"><span class="icon ok">🔥</span>连对 3 次！要升级啦 ✨</div>
+        <div class="wrong-banner" style="margin-top:6px;">没事～ <span class="icon arrow">→</span> 重新挑战</div>
+      </div>
+    </div>
+    <div class="lang-row">
+      <span class="lang">EN</span>
+      <div>
+        <div class="correct-banner"><span class="icon ok">🔥</span>3 in a row! Leveling up ✨</div>
+        <div class="wrong-banner" style="margin-top:6px;">No worries! <span class="icon arrow">→</span> One more</div>
+      </div>
+    </div>
+    <p class="notes">📝 把后台已有的「连对 → 升难度」<strong>显式</strong>告诉孩子，第 3 / 6 题会有大彩蛋；其余答对只显示 ✓ 计数。<br>需要小开发：把 banner 文案与 streak 联动。</p>
+    <div class="vote">
+      <button data-vote="C">👍 我选这个</button>
+    </div>
+  </div>
+
+  <!-- Variant D -->
+  <div class="variant" data-id="D">
+    <h4>方案 D · 简短 emoji <span class="pill tag tone">最克制</span></h4>
+    <div class="lang-row">
+      <span class="lang">中</span>
+      <div>
+        <div class="correct-banner"><span class="icon ok">🎉</span>对了！</div>
+        <div class="wrong-banner" style="margin-top:6px;">不是哦 <span class="icon arrow">→</span> 下一题</div>
+      </div>
+    </div>
+    <div class="lang-row">
+      <span class="lang">EN</span>
+      <div>
+        <div class="correct-banner"><span class="icon ok">🎉</span>Yes!</div>
+        <div class="wrong-banner" style="margin-top:6px;">Nope <span class="icon arrow">→</span> Next</div>
+      </div>
+    </div>
+    <p class="notes">📝 给「快节奏 / 已经熟练」的小朋友。文字越短动效越快，连续刷题最爽。</p>
+    <div class="vote">
+      <button data-vote="D">👍 我选这个</button>
+    </div>
+  </div>
+
+</div>
+
+<hr class="sep" />
+
+<h3>📋 文案对照表（方便一眼比较）</h3>
+<table class="copy">
+  <thead>
+    <tr><th>方案</th><th>中 · 答对</th><th>中 · 答错</th><th>EN · Right</th><th>EN · Wrong</th></tr>
+  </thead>
+  <tbody>
+    <tr><th>A</th><td>太棒了！答对了！</td><td>再试一次吧！→ 下一题</td><td>Great job! That's right!</td><td>Let's try again! → Next question</td></tr>
+    <tr><th>B</th><td>哇噢，就是这个！</td><td>差一点点～ → 再来一次</td><td>Wackadoo! You got it!</td><td>Sooo close! → Try again</td></tr>
+    <tr><th>C</th><td>连对 3 次！要升级啦 ✨</td><td>没事～ → 重新挑战</td><td>3 in a row! Leveling up ✨</td><td>No worries! → One more</td></tr>
+    <tr><th>D</th><td>对了！</td><td>不是哦 → 下一题</td><td>Yes!</td><td>Nope → Next</td></tr>
+  </tbody>
+</table>
+
+<!-- ============================ 4. Saber 推荐 ============================ -->
+<h2>④ Saber 的建议</h2>
+<div class="recommendation">
+  <h3>⭐ 建议：方案 B（基础）+ 方案 C 的「连对升级」彩蛋</h3>
+  <ul>
+    <li><strong>日常每题用 B：</strong>「哇噢，就是这个！」/「差一点点～」既有 Bluey 调性，又比 A 多一点性格。</li>
+    <li><strong>连对 3 / 6 题时叠加 C 的升级彩蛋：</strong>显式告诉孩子「升级啦」，让 v4.0 那个隐藏的难度阶梯被看见。这一改动需要给 ResultBanner 加一行：当 <code>streak == 3</code> 或 <code>streak == 6</code> 时切到「Leveling up」文案。</li>
+    <li><strong>D 留作未来 Settings 里的「快速模式」开关</strong>，给已经熟练的孩子。</li>
+  </ul>
+  <p><strong>下一步：Master 在上面 4 个 👍 里点一下你最喜欢的，我直接落到 <code>QuizSpeech.kt</code> 并打 v4.1 包给你。</strong></p>
+</div>
+
+<p class="muted" style="margin-top: 32px; text-align:center;">
+  ⚔️ Saber · 复用 v3.7 童声音包 · Material 3 + Bluey palette · 本页静态托管于 GitHub Pages /docs。
+</p>
+
+<script>
+  // 投票按钮的小交互 —— 只是为了 Master 选完心里有数；
+  // 真正的「我选 X」请直接回我，我去落代码。
+  document.querySelectorAll('.vote button').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.vote button').forEach(b => b.classList.remove('picked'));
+      btn.classList.add('picked');
+      btn.textContent = '✓ 已选 · 请回复 Saber';
+    });
+  });
+</script>
+</body>
+</html>

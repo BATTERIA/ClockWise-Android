@@ -55,9 +55,45 @@ class QuizScreenTest {
         composeRule.onNodeWithTag("quiz_clock_face").assertIsDisplayed()
         composeRule.onNodeWithTag("quiz_speaker_button").assertHasClickAction()
         composeRule.onNodeWithTag("quiz_open_clock_button").assertHasClickAction()
+        composeRule.onNodeWithTag("quiz_language_toggle").assertHasClickAction()
         composeRule.onNodeWithTag("quiz_choice_0").assertHasClickAction()
         composeRule.onNodeWithTag("quiz_choice_1").assertHasClickAction()
         composeRule.onNodeWithTag("quiz_choice_2").assertHasClickAction()
+    }
+
+    @Test
+    fun languageToggle_invokesCallback_withOppositeLanguage() {
+        // v4.1 — lock in the "tap-to-switch" convention: when the screen
+        // is currently EN, tapping the toggle should request a flip to ZH,
+        // and vice versa. This is what makes the glyph (中 / EN) sensible.
+        val state = QuizUiState(
+            targetHour = 5,
+            targetMinute = 0,
+            choices = listOf(
+                QuizChoice(5, 0),
+                QuizChoice(4, 0),
+                QuizChoice(6, 0),
+            ),
+            correctIndex = 0,
+            language = Language.EN,
+            timeFormat = TimeFormat.H12,
+        )
+        var requested: Language? = null
+        composeRule.setContent {
+            ClockWiseTheme {
+                QuizScreenContent(
+                    state = state,
+                    onPick = {},
+                    onNext = {},
+                    onOpenClock = {},
+                    onLanguageChange = { requested = it },
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("quiz_language_toggle").performClick()
+        composeRule.waitForIdle()
+        assertEquals(Language.ZH, requested)
     }
 
     @Test

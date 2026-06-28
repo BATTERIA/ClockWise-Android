@@ -3,6 +3,7 @@ package com.batteria.clockwise.presentation.quiz
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.batteria.clockwise.presentation.clock.ClockPreferencesRepository
+import com.batteria.clockwise.presentation.clock.Language
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.random.Random
@@ -21,6 +22,10 @@ import kotlinx.coroutines.launch
  * The first quiz format is intentionally simple — "看图说时间" on quarter
  * hours — to match L1 of the published curriculum. Difficulty scales by
  * widening the minute set after a small correct streak.
+ *
+ * v4.1 — added [setLanguage] so the quiz screen's own top-end language
+ * toggle can persist a flip. The flow collector above propagates the
+ * change back into [uiState] on the next emission.
  */
 @HiltViewModel
 class QuizViewModel @Inject constructor(
@@ -46,6 +51,18 @@ class QuizViewModel @Inject constructor(
             }
         }
         nextQuestion()
+    }
+
+    /**
+     * Flip the displayed language (中 / EN). Persisted via the shared
+     * [ClockPreferencesRepository] so the workshop screen picks up the
+     * change too (and survives process death).
+     */
+    fun setLanguage(language: Language) {
+        // Optimistic local update so the UI flips immediately; the prefs
+        // flow will re-emit the same value moments later.
+        _uiState.value = _uiState.value.copy(language = language)
+        viewModelScope.launch { prefs.setLanguage(language) }
     }
 
     /**

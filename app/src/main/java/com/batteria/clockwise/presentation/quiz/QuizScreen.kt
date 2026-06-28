@@ -101,6 +101,7 @@ fun QuizScreen(
         onPick = viewModel::pick,
         onNext = viewModel::nextQuestion,
         onOpenClock = { navController?.navigate(QUIZ_ROUTE_CLOCK) },
+        onLanguageChange = viewModel::setLanguage,
     )
 }
 
@@ -110,6 +111,7 @@ fun QuizScreenContent(
     onPick: (Int) -> Unit,
     onNext: () -> Unit,
     onOpenClock: () -> Unit,
+    onLanguageChange: (Language) -> Unit = {},
 ) {
     val context = LocalContext.current
     val tts = remember { SmartTtsManager(context) }
@@ -155,25 +157,60 @@ fun QuizScreenContent(
                 )
             }
 
-            // Top-end IconButton — opens the full clock workshop.
-            // Material 3 FilledTonalIconButton, matches the back button on
-            // the clock screen for visual symmetry.
-            FilledTonalIconButton(
-                onClick = onOpenClock,
+            // Top-end controls: language pill + clock-workshop IconButton.
+            // Two Material 3 buttons sitting in a Row, anchored TopEnd, so
+            // they slide together with the system insets.
+            Row(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(end = 16.dp, top = 12.dp)
-                    .size(48.dp)
-                    .testTag("quiz_open_clock_button"),
-                colors = IconButtonDefaults.filledTonalIconButtonColors(
-                    containerColor = BlueyPalette.BlueySoft,
-                    contentColor = BlueyPalette.BlueyDeep,
-                ),
+                    .padding(end = 16.dp, top = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Icon(
-                    imageVector = Icons.Filled.AccessTime,
-                    contentDescription = QuizSpeech.openClockHint(state.language),
-                )
+                // v4.1 — language flip. FilledTonalIconButton with a glyph
+                // showing the *other* language (tap-to-switch convention).
+                val otherLang = if (state.language == Language.ZH) Language.EN else Language.ZH
+                val glyph = if (otherLang == Language.ZH) "中" else "EN"
+                FilledTonalIconButton(
+                    onClick = { onLanguageChange(otherLang) },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .testTag("quiz_language_toggle"),
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = BlueyPalette.BlueySoft,
+                        contentColor = BlueyPalette.BlueyDeep,
+                    ),
+                ) {
+                    // We use a Text glyph (not a vector icon) because the
+                    // characters '中' / 'EN' communicate the destination
+                    // language far more directly than a globe icon would
+                    // to a 4–7-year-old. Still a Material 3 IconButton
+                    // container, so the touch target / ripple match the
+                    // other top-end controls.
+                    Text(
+                        text = glyph,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = if (glyph.length == 1) 18.sp else 14.sp,
+                    )
+                }
+
+                // Material 3 FilledTonalIconButton, matches the back button
+                // on the clock screen for visual symmetry.
+                FilledTonalIconButton(
+                    onClick = onOpenClock,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .testTag("quiz_open_clock_button"),
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = BlueyPalette.BlueySoft,
+                        contentColor = BlueyPalette.BlueyDeep,
+                    ),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.AccessTime,
+                        contentDescription = QuizSpeech.openClockHint(state.language),
+                    )
+                }
             }
         }
     }

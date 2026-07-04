@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -54,6 +55,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -287,6 +289,8 @@ private fun PortraitQuizLayout(
 
         // v4.2 — swap the clock face with a spring scale when the question
         // changes so the new time pops in instead of jump-cutting.
+        // v4.4 — the AnalogClockFace shadow uses CircleShape now, so the
+        // spring scale no longer produces a square-edge cut around the dial.
         AnimatedContent(
             targetState = state.targetHour to state.targetMinute,
             transitionSpec = {
@@ -557,19 +561,22 @@ private fun ResultBanner(state: QuizUiState, onNext: () -> Unit, big: Boolean) {
     ) { v ->
         when (v) {
             ResultVariant.Correct -> {
-                ElevatedCard(
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = BlueyPalette.Mint.copy(alpha = 0.18f),
-                        contentColor = BlueyPalette.Ink,
-                    ),
+                // v4.4 — ditched ElevatedCard. M3 cards paint a tonal-elevation
+                // overlay across the *whole* card shape, which read as a square
+                // background block behind the banner text on Master's device.
+                // A plain Box with a translucent mint fill + rounded corners
+                // sits cleanly on the cream background with no rectangle halo.
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(percent = 50))
+                        .background(BlueyPalette.Mint.copy(alpha = 0.18f))
+                        .padding(
+                            horizontal = if (big) 24.dp else 18.dp,
+                            vertical = if (big) 16.dp else 12.dp,
+                        )
+                        .testTag("quiz_result_correct"),
                 ) {
                     Row(
-                        modifier = Modifier
-                            .padding(
-                                horizontal = if (big) 24.dp else 18.dp,
-                                vertical = if (big) 16.dp else 12.dp,
-                            )
-                            .testTag("quiz_result_correct"),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(if (big) 12.dp else 8.dp),
                     ) {
@@ -583,27 +590,26 @@ private fun ResultBanner(state: QuizUiState, onNext: () -> Unit, big: Boolean) {
                             text = QuizSpeech.correct(state.language),
                             fontSize = if (big) 22.sp else 18.sp,
                             fontWeight = FontWeight.Bold,
+                            color = BlueyPalette.Ink,
                         )
                     }
                 }
             }
             ResultVariant.Milestone -> {
                 // “连对 N 次！要升级啦” — sun-yellow card to set it apart from the
-                // mint everyday card. We re-use QuizSpeech.correctMilestone
-                // so the streak number is part of the visible string.
-                ElevatedCard(
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = BlueyPalette.Sun.copy(alpha = 0.28f),
-                        contentColor = BlueyPalette.Ink,
-                    ),
+                // mint everyday card. Same flat-Box treatment as Correct so the
+                // sun-yellow halo doesn't read as a rectangle.
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(percent = 50))
+                        .background(BlueyPalette.Sun.copy(alpha = 0.28f))
+                        .padding(
+                            horizontal = if (big) 28.dp else 22.dp,
+                            vertical = if (big) 18.dp else 14.dp,
+                        )
+                        .testTag("quiz_result_milestone"),
                 ) {
                     Row(
-                        modifier = Modifier
-                            .padding(
-                                horizontal = if (big) 28.dp else 22.dp,
-                                vertical = if (big) 18.dp else 14.dp,
-                            )
-                            .testTag("quiz_result_milestone"),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(if (big) 12.dp else 10.dp),
                     ) {
@@ -617,6 +623,7 @@ private fun ResultBanner(state: QuizUiState, onNext: () -> Unit, big: Boolean) {
                                 ?: QuizSpeech.correct(state.language),
                             fontSize = if (big) 22.sp else 18.sp,
                             fontWeight = FontWeight.ExtraBold,
+                            color = BlueyPalette.Ink,
                         )
                     }
                 }

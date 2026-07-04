@@ -13,8 +13,8 @@ android {
         applicationId = "com.batteria.clockwise"
         minSdk = 26
         targetSdk = 34
-        versionCode = 430
-        versionName = "4.3.0"
+        versionCode = 440
+        versionName = "4.4.0"
     }
 
     buildFeatures {
@@ -38,6 +38,21 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+            all { test ->
+                // v4.4: forward Roborazzi system properties from the Gradle
+                // command line into the test JVM. Without this `-Droborazzi.
+                // test.record=true` is silently dropped and no PNG ever
+                // gets written. Default verifyAndRecord so missing baselines
+                // are captured automatically.
+                test.systemProperties["roborazzi.test.record"] =
+                    System.getProperty("roborazzi.test.record", "true")
+                test.systemProperties["roborazzi.test.verify"] =
+                    System.getProperty("roborazzi.test.verify", "false")
+                // Robolectric graphics mode is scoped per-test via
+                // @GraphicsMode(NATIVE) on screenshot tests; we leave it
+                // alone here so the existing display-based tests keep using
+                // the (faster) LEGACY mode they were written against.
+            }
         }
     }
 
@@ -87,6 +102,12 @@ dependencies {
     testImplementation("org.robolectric:robolectric:4.11.1")
     testImplementation("androidx.test:core-ktx:1.5.0")
     testImplementation("androidx.compose.ui:ui-test-junit4")
+    // v4.4 — screenshot tests (JVM-only via Robolectric Native Graphics).
+    // No emulator/KVM required: Roborazzi renders Compose to PNG on the JVM
+    // so we can self-verify visual fixes when the dev host has no AVD.
+    testImplementation("io.github.takahirom.roborazzi:roborazzi:1.20.0")
+    testImplementation("io.github.takahirom.roborazzi:roborazzi-compose:1.20.0")
+    testImplementation("io.github.takahirom.roborazzi:roborazzi-junit-rule:1.20.0")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     debugImplementation("androidx.compose.ui:ui-tooling")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

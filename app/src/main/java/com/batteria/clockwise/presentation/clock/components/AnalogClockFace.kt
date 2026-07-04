@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.drag
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -173,16 +174,25 @@ fun AnalogClockFace(
 
     Canvas(
         modifier = modifier
+            // v4.4 — use CircleShape instead of RoundedCornerShape(percent = 50).
+            // When the parent applies a non-uniform transform (e.g. the spring
+            // scaleIn/scaleOut on AnimatedContent during a question swap) the
+            // percent-based corner radius is computed from the *current*
+            // animated bounds, which made the clipped shadow visibly snap
+            // between rect-with-pill-ends and a true circle mid-animation.
+            // CircleShape is geometry-only and pre-clips, so the shadow is
+            // always a circle and the scaling stays smooth.
             .shadow(
                 elevation = 12.dp,
-                shape = RoundedCornerShape(percent = 50),
+                shape = CircleShape,
                 ambientColor = BlueyPalette.Ink,
                 spotColor = BlueyPalette.Ink,
+                clip = false,
             )
             .background(
                 color = if (interactive) BlueyPalette.BgElevated.copy(alpha = 0.95f)
                         else BlueyPalette.BgElevated,
-                shape = RoundedCornerShape(percent = 50),
+                shape = CircleShape,
             )
             .then(dragModifier),
     ) {

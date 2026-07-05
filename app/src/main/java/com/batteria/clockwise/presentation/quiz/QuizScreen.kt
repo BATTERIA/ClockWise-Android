@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
@@ -509,7 +510,10 @@ private fun ChoicesGrid(
                         .height(if (big) 76.dp else 60.dp)
                         .scale(scale)
                         .testTag(tag),
-                    shape = RoundedCornerShape(percent = 35),
+                    // v4.5 — fixed 22.dp corners; the previous percent-based
+                    // shape recomputed radius from the live scaled bounds, so
+                    // the pop-up spring briefly flattened the pill mid-frame.
+                    shape = RoundedCornerShape(22.dp),
                     colors = androidx.compose.material3.ButtonDefaults.elevatedButtonColors(
                         containerColor = container,
                         contentColor = content,
@@ -568,7 +572,11 @@ private fun ResultBanner(state: QuizUiState, onNext: () -> Unit, big: Boolean) {
                 // sits cleanly on the cream background with no rectangle halo.
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(percent = 50))
+                        // v4.5 — CircleShape keeps the pill perfectly rounded
+                        // through the AnimatedContent scale spring (0.6 → 1).
+                        // percent-based shapes recalc radius from the live
+                        // bounds and briefly show a squared-off edge.
+                        .clip(CircleShape)
                         .background(BlueyPalette.Mint.copy(alpha = 0.18f))
                         .padding(
                             horizontal = if (big) 24.dp else 18.dp,
@@ -601,7 +609,8 @@ private fun ResultBanner(state: QuizUiState, onNext: () -> Unit, big: Boolean) {
                 // sun-yellow halo doesn't read as a rectangle.
                 Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(percent = 50))
+                        // v4.5 — same reasoning as the Correct banner above.
+                        .clip(CircleShape)
                         .background(BlueyPalette.Sun.copy(alpha = 0.28f))
                         .padding(
                             horizontal = if (big) 28.dp else 22.dp,
